@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { MOCK_DOCUMENTS, MOCK_DOCUMENT_VERSIONS } from "@/lib/mock-data";
@@ -12,6 +12,9 @@ export default function DocumentDetailPage() {
 
   return (
     <div className="space-y-6">
+        <Link href="/documents" className="text-sm text-on-surface-variant hover:text-gold transition-colors">
+  ← Back to Documents
+</Link>
       <div className="flex items-start justify-between">
         <div>
           <h1 className="font-serif text-3xl text-primary">{doc.title}</h1>
