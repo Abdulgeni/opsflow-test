@@ -8,6 +8,29 @@ export function propertyStatusTone(status: string) {
   }
 }
 
+export function clientStatusTone(status: string) {
+  switch (status) {
+    case "LEAD": return "progress" as const;
+    case "ACTIVE": return "positive" as const;
+    case "INACTIVE": return "inactive" as const;
+    case "ARCHIVED": return "inactive" as const;
+    default: return "inactive" as const;
+  }
+}
+
+export function maintenanceStatusTone(status: string) {
+  switch (status) {
+    case "OPEN": return "warning" as const;
+    case "IN_PROGRESS": return "progress" as const;
+    case "RESOLVED": return "positive" as const;
+    default: return "inactive" as const;
+  }
+}
+
+export function userStatusTone(status: string) {
+  return status === "Active" ? ("positive" as const) : ("inactive" as const);
+}
+
 export function statusLabel(status: string) {
   return status
     .toLowerCase()
