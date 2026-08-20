@@ -10,10 +10,16 @@ const CATEGORIES = ["Legal", "Property", "Finance", "Compliance"];
 export default function DocumentsPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
+  const [linkedTo, setLinkedTo] = useState("");
+
+  // Build the "linked to" options directly from the mock data, so this
+  // list never goes stale relative to what's actually in the table.
+  const linkedToOptions = Array.from(new Set(MOCK_DOCUMENTS.map((d) => d.linkedTo)));
 
   const filtered = MOCK_DOCUMENTS.filter((d) => {
     if (search && !d.title.toLowerCase().includes(search.toLowerCase())) return false;
     if (category && d.category !== category) return false;
+    if (linkedTo && d.linkedTo !== linkedTo) return false;
     return true;
   });
 
@@ -45,8 +51,15 @@ export default function DocumentsPage() {
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
-          <select className="rounded-lg border border-surface-container-highest px-3 py-2 text-sm">
-            <option>Linked to: All</option>
+          <select
+            value={linkedTo}
+            onChange={(e) => setLinkedTo(e.target.value)}
+            className="rounded-lg border border-surface-container-highest px-3 py-2 text-sm"
+          >
+            <option value="">Linked to: All</option>
+            {linkedToOptions.map((l) => (
+              <option key={l} value={l}>{l}</option>
+            ))}
           </select>
         </div>
 
