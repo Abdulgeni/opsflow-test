@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { label: "Workflows", href: "/workflows", icon: "⟳" },
   { label: "Users", href: "/users", icon: "◉" },
   { label: "Reports", href: "/reports", icon: "▧" },
+  { label: "Executive", href: "/executive", icon: "◆" },
   { label: "Settings", href: "/settings", icon: "⚙" },
 ];
 
