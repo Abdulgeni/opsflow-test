@@ -4,29 +4,47 @@ import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { MOCK_CLIENTS } from "@/lib/mock-data";
+import { AddClientModal } from "@/components/clients/add-client-modal";
+import { MOCK_CLIENTS, Client } from "@/lib/mock-data";
 import { clientStatusTone, statusLabel } from "@/lib/status-tones";
 
 const STATUSES = ["LEAD", "ACTIVE", "INACTIVE", "ARCHIVED"];
 const TYPES = ["Individual", "Organization"];
 
 export default function ClientsPage() {
+  const [clients, setClients] = useState<Client[]>(MOCK_CLIENTS);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
 
-  const filtered = MOCK_CLIENTS.filter((c) => {
+  const filtered = clients.filter((c) => {
     if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
     if (status && c.status !== status) return false;
     if (type && c.type !== type) return false;
     return true;
   });
 
+  function handleAdd(data: { name: string; type: "Individual" | "Organization"; email: string; phone: string }) {
+    const newClient: Client = {
+      id: String(Date.now()),
+      name: data.name,
+      type: data.type,
+      email: data.email,
+      phone: data.phone,
+      status: "LEAD",
+    };
+    setClients((prev) => [newClient, ...prev]);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-3xl text-primary">Clients</h1>
-        <button className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
+        <button
+          onClick={() => setModalOpen(true)}
+          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+        >
           + Add client
         </button>
       </div>
@@ -95,6 +113,8 @@ export default function ClientsPage() {
           </table>
         )}
       </Card>
+
+      <AddClientModal open={modalOpen} onClose={() => setModalOpen(false)} onAdd={handleAdd} />
     </div>
   );
 }
