@@ -3,31 +3,48 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { MOCK_DOCUMENTS } from "@/lib/mock-data";
+import { UploadDocumentModal } from "@/components/documents/upload-document-modal";
+import { MOCK_DOCUMENTS, OpsDocument } from "@/lib/mock-data";
 
 const CATEGORIES = ["Legal", "Property", "Finance", "Compliance"];
 
 export default function DocumentsPage() {
+  const [documents, setDocuments] = useState<OpsDocument[]>(MOCK_DOCUMENTS);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [linkedTo, setLinkedTo] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
 
-  // Build the "linked to" options directly from the mock data, so this
-  // list never goes stale relative to what's actually in the table.
-  const linkedToOptions = Array.from(new Set(MOCK_DOCUMENTS.map((d) => d.linkedTo)));
+  const linkedToOptions = Array.from(new Set(documents.map((d) => d.linkedTo)));
 
-  const filtered = MOCK_DOCUMENTS.filter((d) => {
+  const filtered = documents.filter((d) => {
     if (search && !d.title.toLowerCase().includes(search.toLowerCase())) return false;
     if (category && d.category !== category) return false;
     if (linkedTo && d.linkedTo !== linkedTo) return false;
     return true;
   });
 
+  function handleUpload(data: { title: string; category: string; linkedTo: string }) {
+    const newDoc: OpsDocument = {
+      id: String(Date.now()),
+      title: data.title,
+      category: data.category,
+      linkedTo: data.linkedTo,
+      uploadedBy: "You",
+      version: 1,
+      date: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
+    };
+    setDocuments((prev) => [newDoc, ...prev]);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-3xl text-primary">Documents</h1>
-        <button className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
+        <button
+          onClick={() => setModalOpen(true)}
+          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+        >
           + Upload document
         </button>
       </div>
@@ -97,6 +114,8 @@ export default function DocumentsPage() {
           </table>
         )}
       </Card>
+
+      <UploadDocumentModal open={modalOpen} onClose={() => setModalOpen(false)} onUpload={handleUpload} />
     </div>
   );
 }
