@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function TopBar() {
   return (
     <header className="h-16 border-b border-surface-container-highest bg-white flex items-center justify-end gap-4 px-8 flex-shrink-0">
@@ -17,8 +19,14 @@ export function TopBar() {
         <span className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-sm text-on-surface">
           U
         </span>
-        <span className="font-sans text-sm text-on-surface">Profile</span>
+        <span className="text-sm text-on-surface">Profile</span>
       </div>
+      <Link
+        href="/sign-in"
+        className="text-sm text-on-surface-variant hover:text-gold transition-colors ml-2"
+      >
+        Sign out
+      </Link>
     </header>
   );
 }
