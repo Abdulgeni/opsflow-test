@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { MOCK_WORKFLOW } from "@/lib/mock-data";
 import { Card } from "@/components/ui/card";
 
@@ -8,6 +8,9 @@ export default function WorkflowDetailPage() {
 
   return (
     <div className="space-y-6">
+      <Link href="/workflows" className="text-sm text-on-surface-variant hover:text-gold transition-colors">
+  ← Back to Workflows
+</Link>
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs text-on-surface-variant mb-1">Workflow / Documents / Lease Agreements</p>
