@@ -1,18 +1,37 @@
 "use client";
 
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { MOCK_USERS, PERMISSION_MATRIX, Role } from "@/lib/mock-data";
+import { AddUserModal } from "@/components/users/add-user-modal";
+import { MOCK_USERS, PERMISSION_MATRIX, Role, OpsUser } from "@/lib/mock-data";
 import { userStatusTone } from "@/lib/status-tones";
 
 const ROLES: Role[] = ["Admin", "Manager", "Staff"];
 
 export default function UsersPage() {
+  const [users, setUsers] = useState<OpsUser[]>(MOCK_USERS);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  function handleAdd(data: { name: string; department: string; role: Role }) {
+    const newUser: OpsUser = {
+      id: String(Date.now()),
+      name: data.name,
+      department: data.department || "—",
+      role: data.role,
+      status: "Active", // simplified for mock data; real flow would be "Pending" until activation
+    };
+    setUsers((prev) => [newUser, ...prev]);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-3xl text-primary">Users</h1>
-        <button className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
+        <button
+          onClick={() => setModalOpen(true)}
+          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+        >
           + Add user
         </button>
       </div>
@@ -29,7 +48,7 @@ export default function UsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-container-highest">
-            {MOCK_USERS.map((u) => (
+            {users.map((u) => (
               <tr key={u.id} className="hover:bg-surface-bright/50 transition-colors">
                 <td className="py-4 px-2 text-sm text-primary font-medium">{u.name}</td>
                 <td className="py-4 px-2 text-sm text-on-surface-variant">{u.department}</td>
@@ -66,6 +85,8 @@ export default function UsersPage() {
           </tbody>
         </table>
       </Card>
+
+      <AddUserModal open={modalOpen} onClose={() => setModalOpen(false)} onAdd={handleAdd} />
     </div>
   );
 }
