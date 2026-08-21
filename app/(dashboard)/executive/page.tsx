@@ -1,8 +1,28 @@
+"use client";
+
+import { useState } from "react";
+
+interface Note {
+  id: string;
+  text: string;
+  timeAgo: string;
+}
+
 export default function ExecutiveSummaryPage() {
   const flaggedItems = [
     { title: "Lease Agreement - Alpha Towers", reason: "Stalled 7 business days in current stage" },
     { title: "Property: West End Plaza", reason: "Under maintenance 12 days" },
   ];
+
+  const [noteText, setNoteText] = useState("");
+  const [savedNotes, setSavedNotes] = useState<Note[]>([]);
+
+  function handleSave() {
+    if (!noteText.trim()) return;
+    const newNote: Note = { id: String(Date.now()), text: noteText.trim(), timeAgo: "Just now" };
+    setSavedNotes((prev) => [newNote, ...prev]);
+    setNoteText("");
+  }
 
   return (
     <div className="space-y-6">
@@ -50,11 +70,29 @@ export default function ExecutiveSummaryPage() {
           <textarea
             placeholder="Log a decision on the selected item..."
             rows={4}
-            className="w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm resize-none"
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            className="w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm resize-none focus:border-gold focus:ring-gold"
           />
-          <button className="mt-3 bg-charcoal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-container transition-colors">
+          <button
+            onClick={handleSave}
+            disabled={!noteText.trim()}
+            className="mt-3 bg-charcoal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-container transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             Save Note
           </button>
+
+          {savedNotes.length > 0 && (
+            <div className="mt-6 pt-4 border-t border-surface-container-highest space-y-3">
+              <p className="text-xs font-medium text-on-surface-variant uppercase">Logged notes</p>
+              {savedNotes.map((n) => (
+                <div key={n.id} className="text-sm">
+                  <p className="text-on-surface">{n.text}</p>
+                  <p className="text-xs text-on-surface-variant mt-1">{n.timeAgo}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
