@@ -12,6 +12,22 @@ const CHART_DATA = [
 export default function ReportsPage() {
   const maxValue = 100;
 
+  function handleExport() {
+    const header = "Week,Completion Rate\n";
+    const rows = CHART_DATA.map((d) => `${d.week},${d.value}%`).join("\n");
+    const csvContent = header + rows;
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "workflow-completion-rate.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -38,7 +54,6 @@ export default function ReportsPage() {
 
       <Card title="Workflow Completion Rate">
         <div className="h-64 flex items-end gap-8 px-4 pt-8 relative">
-          {/* Gridlines */}
           {[0, 25, 50, 75, 100].map((v) => (
             <div
               key={v}
@@ -48,16 +63,11 @@ export default function ReportsPage() {
               <span className="absolute -left-8 -top-2">{v}%</span>
             </div>
           ))}
-
-          {/* Simple bar-style representation (safe, no external chart library needed) */}
           <div className="flex items-end justify-between w-full h-full relative z-10">
             {CHART_DATA.map((point) => (
               <div key={point.week} className="flex flex-col items-center gap-2 flex-1">
                 <span className="text-xs font-medium text-primary">{point.value}%</span>
-                <div
-                  className="w-12 bg-gold rounded-t"
-                  style={{ height: `${(point.value / maxValue) * 180}px` }}
-                />
+                <div className="w-12 bg-gold rounded-t" style={{ height: `${(point.value / maxValue) * 180}px` }} />
                 <span className="text-xs text-on-surface-variant">{point.week}</span>
               </div>
             ))}
@@ -65,7 +75,10 @@ export default function ReportsPage() {
         </div>
 
         <div className="flex justify-end mt-4">
-          <button className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors">
+          <button
+            onClick={handleExport}
+            className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors"
+          >
             Export CSV
           </button>
         </div>
