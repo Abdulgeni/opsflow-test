@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { MOCK_WORKFLOW } from "@/lib/mock-data";
+import { MOCK_WORKFLOWS } from "@/lib/mock-data";
 
 export default function WorkflowsPage() {
   return (
@@ -18,18 +18,20 @@ export default function WorkflowsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-container-highest">
-            <tr className="hover:bg-surface-bright/50 transition-colors">
-              <td className="py-4 px-2 text-sm text-on-surface-variant">{MOCK_WORKFLOW.id}</td>
-              <td className="py-4 px-2">
-                <Link href={`/workflows/${MOCK_WORKFLOW.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
-                  {MOCK_WORKFLOW.title}
-                </Link>
-              </td>
-              <td className="py-4 px-2 text-sm text-on-surface-variant">
-                {MOCK_WORKFLOW.stages[MOCK_WORKFLOW.currentStageIndex]}
-              </td>
-              <td className="py-4 px-2 text-sm text-on-surface-variant">{MOCK_WORKFLOW.createdAt}</td>
-            </tr>
+            {MOCK_WORKFLOWS.map((wf) => (
+              <tr key={wf.id} className="hover:bg-surface-bright/50 transition-colors">
+                <td className="py-4 px-2 text-sm text-on-surface-variant">{wf.id}</td>
+                <td className="py-4 px-2">
+                  <Link href={`/workflows/${wf.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
+                    {wf.title}
+                  </Link>
+                </td>
+                <td className="py-4 px-2 text-sm text-on-surface-variant">
+                  {wf.stages[wf.currentStageIndex]}
+                </td>
+                <td className="py-4 px-2 text-sm text-on-surface-variant">{wf.createdAt}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </Card>
