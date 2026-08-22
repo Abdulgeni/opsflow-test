@@ -35,9 +35,7 @@ export async function fetchWorkflows(): Promise<ApiWorkflow[]> {
   return res.json();
 }
 
-export async function fetchWorkflow(id: string): Promise
-  ApiWorkflow & { transitions: ApiTransition[]; comments: ApiWorkflowComment[] }
-> {
+export async function fetchWorkflow(id: string): Promise<ApiWorkflow & { transitions: ApiTransition[]; comments: ApiWorkflowComment[] }> {
   const res = await fetch(`${API_URL}/workflows/${id}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Failed to fetch workflow");
   return res.json();
