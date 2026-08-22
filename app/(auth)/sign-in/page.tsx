@@ -7,12 +7,35 @@ export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Mock only for now — no real backend call yet.
-    router.push("/dashboard");
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Invalid email or password");
+      }
+
+      const data = await res.json();
+      localStorage.setItem("opsflow_token", data.accessToken);
+      localStorage.setItem("opsflow_user", JSON.stringify(data.user));
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign-in failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -28,6 +51,12 @@ export default function SignInPage() {
             </div>
             <p className="font-sans text-sm text-gold mt-2">Management Suite</p>
           </div>
+
+          {error && (
+            <div role="alert" className="mb-4 rounded-lg bg-status-negative-bg text-status-negative-text px-4 py-3 text-sm">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -74,9 +103,10 @@ export default function SignInPage() {
 
             <button
               type="submit"
-              className="w-full py-3 rounded-lg font-medium text-on-primary bg-charcoal hover:bg-primary-container transition-all"
+              disabled={loading}
+              className="w-full py-3 rounded-lg font-medium text-on-primary bg-charcoal hover:bg-primary-container transition-all disabled:opacity-60"
             >
-              Sign in
+              {loading ? "Signing in…" : "Sign in"}
             </button>
           </form>
 
