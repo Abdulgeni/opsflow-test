@@ -1,40 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { AddClientModal } from "@/components/clients/add-client-modal";
-import { MOCK_CLIENTS, Client } from "@/lib/mock-data";
+import { fetchClients, createClient, ApiClient } from "@/lib/api/clients";
 import { clientStatusTone, statusLabel } from "@/lib/status-tones";
 
 const STATUSES = ["LEAD", "ACTIVE", "INACTIVE", "ARCHIVED"];
-const TYPES = ["Individual", "Organization"];
+const TYPES = ["INDIVIDUAL", "ORGANIZATION"];
 
 export default function ClientsPage() {
-  const [clients, setClients] = useState<Client[]>(MOCK_CLIENTS);
+  const [clients, setClients] = useState<ApiClient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
 
-  const filtered = clients.filter((c) => {
-    if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
-    if (status && c.status !== status) return false;
-    if (type && c.type !== type) return false;
-    return true;
-  });
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchClients({ search, status, type });
+      setClients(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load clients");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  function handleAdd(data: { name: string; type: "Individual" | "Organization"; email: string; phone: string }) {
-    const newClient: Client = {
-      id: String(Date.now()),
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, status, type]);
+
+  async function handleAdd(data: { name: string; type: "Individual" | "Organization"; email: string; phone: string }) {
+    await createClient({
       name: data.name,
-      type: data.type,
+      type: data.type.toUpperCase() as "INDIVIDUAL" | "ORGANIZATION",
       email: data.email,
       phone: data.phone,
-      status: "LEAD",
-    };
-    setClients((prev) => [newClient, ...prev]);
+    });
+    await load();
   }
 
   return (
@@ -75,16 +86,33 @@ export default function ClientsPage() {
           >
             <option value="">Type: All</option>
             {TYPES.map((t) => (
-              <option key={t} value={t}>{t}</option>
+              <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>
             ))}
           </select>
         </div>
 
-        {filtered.length === 0 ? (
+        {loading && (
+          <div className="space-y-3 animate-pulse">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-12 bg-surface-container-low rounded" />
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center py-10">
+            <p className="text-sm text-status-negative-text mb-2">{error}</p>
+            <button onClick={load} className="text-sm text-gold underline">Retry</button>
+          </div>
+        )}
+
+        {!loading && !error && clients.length === 0 && (
           <div className="text-center py-10">
             <p className="text-sm text-on-surface-variant">No clients match your filters.</p>
           </div>
-        ) : (
+        )}
+
+        {!loading && !error && clients.length > 0 && (
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
@@ -96,16 +124,16 @@ export default function ClientsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-highest">
-              {filtered.map((c) => (
+              {clients.map((c) => (
                 <tr key={c.id} className="hover:bg-surface-bright/50 transition-colors">
                   <td className="py-4 px-2">
                     <Link href={`/clients/${c.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
                       {c.name}
                     </Link>
                   </td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{c.type}</td>
+                  <td className="py-4 px-2 text-sm text-on-surface-variant">{c.type.charAt(0) + c.type.slice(1).toLowerCase()}</td>
                   <td className="py-4 px-2 text-sm text-on-surface-variant">{c.email}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{c.phone}</td>
+                  <td className="py-4 px-2 text-sm text-on-surface-variant">{c.phone ?? "—"}</td>
                   <td className="py-4 px-2"><Badge tone={clientStatusTone(c.status)}>{statusLabel(c.status)}</Badge></td>
                 </tr>
               ))}

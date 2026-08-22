@@ -1,18 +1,28 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { MOCK_CLIENTS, MOCK_CONTACT_LOG } from "@/lib/mock-data";
+import { fetchClient, ApiClient, ApiContactLog } from "@/lib/api/clients";
 import { clientStatusTone, statusLabel } from "@/lib/status-tones";
 
 export default function ClientDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const client = MOCK_CLIENTS.find((c) => c.id === id);
-  const contactLog = MOCK_CONTACT_LOG.filter((l) => l.clientId === id);
+  const [client, setClient] = useState<(ApiClient & { contactLogs: ApiContactLog[] }) | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!client) return <div className="text-sm text-status-negative-text">Client not found.</div>;
+  useEffect(() => {
+    fetchClient(id)
+      .then(setClient)
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load client"))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) return <div className="h-40 bg-surface-container-low rounded animate-pulse" />;
+  if (error || !client) return <div className="text-sm text-status-negative-text">{error ?? "Client not found."}</div>;
 
   return (
     <div className="space-y-6">
@@ -26,7 +36,9 @@ export default function ClientDetailPage() {
             <h1 className="font-serif text-3xl text-primary">{client.name}</h1>
             <Badge tone={clientStatusTone(client.status)}>{statusLabel(client.status)}</Badge>
           </div>
-          <p className="text-sm text-on-surface-variant mt-1">{client.type} · {client.email} · {client.phone}</p>
+          <p className="text-sm text-on-surface-variant mt-1">
+            {client.type.charAt(0) + client.type.slice(1).toLowerCase()} · {client.email} · {client.phone ?? "—"}
+          </p>
         </div>
         <div className="flex gap-2">
           <button className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors">Edit</button>
@@ -37,14 +49,20 @@ export default function ClientDetailPage() {
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-6">
           <Card title="Contact Log">
-            <div className="space-y-4">
-              {contactLog.map((l) => (
-                <div key={l.id} className="pb-3 border-b border-surface-container-highest last:border-0">
-                  <p className="text-sm text-on-surface">{l.note}</p>
-                  <p className="text-xs text-on-surface-variant mt-1">Logged by {l.author} · {l.timeAgo}</p>
-                </div>
-              ))}
-            </div>
+            {client.contactLogs.length === 0 ? (
+              <p className="text-sm text-on-surface-variant">No contact log entries.</p>
+            ) : (
+              <div className="space-y-4">
+                {client.contactLogs.map((l) => (
+                  <div key={l.id} className="pb-3 border-b border-surface-container-highest last:border-0">
+                    <p className="text-sm text-on-surface">{l.notes}</p>
+                    <p className="text-xs text-on-surface-variant mt-1">
+                      Logged by {l.createdBy.name} · {new Date(l.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
           <Card title="Linked Properties">
             <p className="text-sm text-on-surface-variant">No linked properties.</p>
