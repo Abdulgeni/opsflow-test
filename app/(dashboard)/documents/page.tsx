@@ -1,40 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { UploadDocumentModal } from "@/components/documents/upload-document-modal";
-import { MOCK_DOCUMENTS, OpsDocument } from "@/lib/mock-data";
+import { fetchDocuments, createDocument, ApiDocument } from "@/lib/api/documents";
 
 const CATEGORIES = ["Legal", "Property", "Finance", "Compliance"];
 
 export default function DocumentsPage() {
-  const [documents, setDocuments] = useState<OpsDocument[]>(MOCK_DOCUMENTS);
+  const [documents, setDocuments] = useState<ApiDocument[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [linkedTo, setLinkedTo] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
 
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchDocuments({ search, category, linkedTo });
+      setDocuments(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load documents");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, category, linkedTo]);
+
   const linkedToOptions = Array.from(new Set(documents.map((d) => d.linkedTo)));
 
-  const filtered = documents.filter((d) => {
-    if (search && !d.title.toLowerCase().includes(search.toLowerCase())) return false;
-    if (category && d.category !== category) return false;
-    if (linkedTo && d.linkedTo !== linkedTo) return false;
-    return true;
-  });
-
-  function handleUpload(data: { title: string; category: string; linkedTo: string }) {
-    const newDoc: OpsDocument = {
-      id: String(Date.now()),
-      title: data.title,
-      category: data.category,
-      linkedTo: data.linkedTo,
-      uploadedBy: "You",
-      version: 1,
-      date: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
-    };
-    setDocuments((prev) => [newDoc, ...prev]);
+  async function handleUpload(data: { title: string; category: string; linkedTo: string }) {
+    await createDocument(data);
+    await load();
   }
 
   return (
@@ -80,11 +85,28 @@ export default function DocumentsPage() {
           </select>
         </div>
 
-        {filtered.length === 0 ? (
+        {loading && (
+          <div className="space-y-3 animate-pulse">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-12 bg-surface-container-low rounded" />
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center py-10">
+            <p className="text-sm text-status-negative-text mb-2">{error}</p>
+            <button onClick={load} className="text-sm text-gold underline">Retry</button>
+          </div>
+        )}
+
+        {!loading && !error && documents.length === 0 && (
           <div className="text-center py-10">
             <p className="text-sm text-on-surface-variant">No documents match your filters.</p>
           </div>
-        ) : (
+        )}
+
+        {!loading && !error && documents.length > 0 && (
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
@@ -96,7 +118,7 @@ export default function DocumentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-highest">
-              {filtered.map((d) => (
+              {documents.map((d) => (
                 <tr key={d.id} className="hover:bg-surface-bright/50 transition-colors">
                   <td className="py-4 px-2">
                     <Link href={`/documents/${d.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
@@ -105,9 +127,9 @@ export default function DocumentsPage() {
                   </td>
                   <td className="py-4 px-2 text-sm text-on-surface-variant">{d.category}</td>
                   <td className="py-4 px-2 text-sm text-on-surface-variant">{d.linkedTo}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{d.uploadedBy}</td>
+                  <td className="py-4 px-2 text-sm text-on-surface-variant">{d.uploadedBy.name}</td>
                   <td className="py-4 px-2 text-sm text-on-surface-variant">v{d.version}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{d.date}</td>
+                  <td className="py-4 px-2 text-sm text-on-surface-variant">{new Date(d.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
