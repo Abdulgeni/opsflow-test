@@ -1,38 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { AddPropertyModal } from "@/components/properties/add-property-modal";
-import { MOCK_PROPERTIES, Property } from "@/lib/mock-data";
+import { fetchProperties, createProperty, ApiProperty } from "@/lib/api/properties";
 import { propertyStatusTone, statusLabel } from "@/lib/status-tones";
 
 const STATUSES = ["AVAILABLE", "OCCUPIED", "UNDER_MAINTENANCE", "DECOMMISSIONED"];
 
 export default function PropertiesPage() {
-  const [properties, setProperties] = useState<Property[]>(MOCK_PROPERTIES);
+  const [properties, setProperties] = useState<ApiProperty[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
 
-  const filtered = properties.filter((p) => {
-    if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
-    if (status && p.status !== status) return false;
-    if (type && p.type !== type) return false;
-    return true;
-  });
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchProperties({ search, status, type });
+      setProperties(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load properties");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  function handleAdd(data: { name: string; address: string; type: string }) {
-    const newProperty: Property = {
-      id: String(Date.now()),
-      name: data.name,
-      address: data.address,
-      type: data.type,
-      status: "AVAILABLE",
-    };
-    setProperties((prev) => [newProperty, ...prev]);
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, status, type]);
+
+  async function handleAdd(data: { name: string; address: string; type: string }) {
+    await createProperty(data);
+    await load();
   }
 
   return (
@@ -78,11 +85,28 @@ export default function PropertiesPage() {
           </select>
         </div>
 
-        {filtered.length === 0 ? (
+        {loading && (
+          <div className="space-y-3 animate-pulse">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-12 bg-surface-container-low rounded" />
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center py-10">
+            <p className="text-sm text-status-negative-text mb-2">{error}</p>
+            <button onClick={load} className="text-sm text-gold underline">Retry</button>
+          </div>
+        )}
+
+        {!loading && !error && properties.length === 0 && (
           <div className="text-center py-10">
             <p className="text-sm text-on-surface-variant">No properties match your filters.</p>
           </div>
-        ) : (
+        )}
+
+        {!loading && !error && properties.length > 0 && (
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
@@ -94,7 +118,7 @@ export default function PropertiesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-highest">
-              {filtered.map((p) => (
+              {properties.map((p) => (
                 <tr key={p.id} className="hover:bg-surface-bright/50 transition-colors">
                   <td className="py-4 px-2">
                     <Link href={`/properties/${p.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
