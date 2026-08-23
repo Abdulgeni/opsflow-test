@@ -1,0 +1,20 @@
+# Dependencies
+node_modules
+
+# Environment variables — never commit secrets
+.env
+.env.local
+**/.env
+**/.env.local
+
+# Generated Prisma client
+/generated/prisma
+apps/api/src/generated
+
+# Build outputs
+apps/api/dist
+apps/web/.next
+
+# Editor/OS
+.vscode
+.DS_Store
