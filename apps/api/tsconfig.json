@@ -17,5 +17,6 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": true,
     "types": ["node"]
-  }
+  },
+  "exclude": ["**/*.spec.ts", "node_modules", "dist"]
 }
