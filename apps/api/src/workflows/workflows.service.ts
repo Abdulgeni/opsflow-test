@@ -1,9 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { WorkflowsGateway } from "./workflows.gateway";
 
 @Injectable()
 export class WorkflowsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private gateway: WorkflowsGateway
+  ) {}
 
   async findAll() {
     return this.prisma.workflowInstance.findMany({
@@ -71,8 +75,13 @@ export class WorkflowsService {
   }
 
   async addComment(id: string, authorId: string, body: string) {
-    return this.prisma.workflowComment.create({
+    const comment = await this.prisma.workflowComment.create({
       data: { workflowInstanceId: id, authorId, body },
+      include: { author: { select: { name: true } } },
     });
+
+    this.gateway.broadcastNewComment(id, comment);
+
+    return comment;
   }
 }

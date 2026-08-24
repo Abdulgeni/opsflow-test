@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import { getSocket } from "@/lib/socket";
 import {
   fetchWorkflow,
   advanceWorkflow,
@@ -42,6 +43,24 @@ export default function WorkflowDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Real-time comment delivery — SRS Module 6 requirement: new comments
+  // must appear within 2 seconds, no page refresh, no polling.
+  useEffect(() => {
+    const socket = getSocket();
+    socket.emit("joinWorkflow", id);
+
+    function handleNewComment(comment: ApiWorkflowComment) {
+      setWf((prev) => (prev ? { ...prev, comments: [...prev.comments, comment] } : prev));
+    }
+
+    socket.on("comment:new", handleNewComment);
+
+    return () => {
+      socket.emit("leaveWorkflow", id);
+      socket.off("comment:new", handleNewComment);
+    };
+  }, [id]);
+
   async function handleAdvance() {
     setActionError(null);
     try {
@@ -61,13 +80,19 @@ export default function WorkflowDetailPage() {
       setActionError(err instanceof Error ? err.message : "Failed to reject");
     }
   }
+  
 
-  async function handlePostComment() {
-    if (!commentText.trim()) return;
-    await addWorkflowComment(id, commentText.trim());
+async function handlePostComment() {
+  console.log("handlePostComment called, text is:", commentText);
+  if (!commentText.trim()) return;
+  try {
+    const result = await addWorkflowComment(id, commentText.trim());
+    console.log("Comment posted successfully:", result);
     setCommentText("");
-    await load();
+  } catch (err) {
+    console.error("Failed to post comment:", err);
   }
+}
 
   if (loading) return <div className="h-40 bg-surface-container-low rounded animate-pulse" />;
   if (error || !wf) return <div className="text-sm text-status-negative-text">{error ?? "Workflow not found."}</div>;
@@ -173,15 +198,15 @@ export default function WorkflowDetailPage() {
           )}
           <div className="mt-4 flex gap-2">
             <input
-  type="text"
-  placeholder="Add a comment..."
-  value={commentText}
-  onChange={(e) => setCommentText(e.target.value)}
-  onKeyDown={(e) => {
-    if (e.key === "Enter") handlePostComment();
-  }}
-  className="flex-1 rounded-lg border border-surface-container-highest px-3 py-2 text-sm"
-/>
+              type="text"
+              placeholder="Add a comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handlePostComment();
+              }}
+              className="flex-1 rounded-lg border border-surface-container-highest px-3 py-2 text-sm"
+            />
             <button onClick={handlePostComment} className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium">
               Post
             </button>
