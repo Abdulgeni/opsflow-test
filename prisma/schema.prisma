@@ -43,6 +43,7 @@ model User {
   workflowTransitions WorkflowTransition[]
   workflowComments    WorkflowComment[]
   executiveNotes ExecutiveNote[]
+  notifications Notification[]
 
   @@map("users")
 }
@@ -239,4 +240,14 @@ model ReportSnapshot {
   capturedAt     DateTime @default(now())
 
   @@map("report_snapshots")
+}
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
 }
