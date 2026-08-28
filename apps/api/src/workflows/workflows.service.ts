@@ -1,12 +1,14 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { WorkflowsGateway } from "./workflows.gateway";
+import { NotificationsService } from "../notifications/notifications.service";
 
 @Injectable()
 export class WorkflowsService {
-  constructor(
+ constructor(
     private prisma: PrismaService,
-    private gateway: WorkflowsGateway
+    private gateway: WorkflowsGateway,
+    private notifications: NotificationsService
   ) {}
 
   async findAll() {
@@ -54,10 +56,14 @@ export class WorkflowsService {
       data: { workflowInstanceId: id, fromStage, toStage, actorId, comment },
     });
 
-    return this.prisma.workflowInstance.update({
+    const updated = await this.prisma.workflowInstance.update({
       where: { id },
       data: { currentStageIndex: workflow.currentStageIndex + 1 },
     });
+
+    await this.notifications.create(actorId, `"${workflow.title}" advanced to "${toStage}"`);
+
+    return updated;
   }
 
   async reject(id: string, actorId: string, comment?: string) {
