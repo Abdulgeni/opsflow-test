@@ -68,7 +68,11 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-3xl text-primary">Analytics</h1>
+      {/* Wrapped title with gold accent line */}
+      <div>
+        <div className="w-10 h-1 bg-gold rounded-full mb-3" />
+        <h1 className="font-serif text-3xl text-primary">Analytics</h1>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[

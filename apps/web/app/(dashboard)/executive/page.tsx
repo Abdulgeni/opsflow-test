@@ -52,6 +52,8 @@ export default function ExecutiveSummaryPage() {
   return (
     <div className="space-y-6">
       <div>
+        {/* Added gold accent line above the title */}
+        <div className="w-10 h-1 bg-gold rounded-full mb-3" />
         <h1 className="font-serif text-3xl text-primary">Executive Summary</h1>
         <p className="text-sm text-on-surface-variant mt-1">
           High-level overview of operational metrics and flagged items.

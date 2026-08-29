@@ -47,7 +47,11 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 max-w-lg">
-      <h1 className="font-serif text-3xl text-primary">Settings</h1>
+      {/* Wrapped title with gold accent line */}
+      <div>
+        <div className="w-10 h-1 bg-gold rounded-full mb-3" />
+        <h1 className="font-serif text-3xl text-primary">Settings</h1>
+      </div>
       <p className="text-sm text-on-surface-variant">
         Update your own profile details. Your role can only be changed by an administrator.
       </p>

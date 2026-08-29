@@ -73,7 +73,11 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-primary">Users</h1>
+        {/* Wrapped title with gold accent line */}
+        <div>
+          <div className="w-10 h-1 bg-gold rounded-full mb-3" />
+          <h1 className="font-serif text-3xl text-primary">Users</h1>
+        </div>
         <button
           onClick={() => setModalOpen(true)}
           className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
