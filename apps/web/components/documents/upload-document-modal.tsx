@@ -77,9 +77,9 @@ export function UploadDocumentModal({
               type="file"
               className="block w-full text-sm text-on-surface-variant file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container-low file:text-sm"
             />
-            <p className="text-xs text-on-surface-variant mt-1">
-              File upload is not wired to real storage yet — this is a placeholder for now.
-            </p>
+           <p className="text-xs text-on-surface-variant mt-1">
+  Attach a file for your own reference. Document details (title, category, version) are saved and tracked in OpsFlow.
+</p>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
