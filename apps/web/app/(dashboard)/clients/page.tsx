@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { AddClientModal } from "@/components/clients/add-client-modal";
 import { fetchClients, createClient, ApiClient } from "@/lib/api/clients";
 import { clientStatusTone, statusLabel } from "@/lib/status-tones";
+import { useToast } from "@/components/ui/toast";
 
 const STATUSES = ["LEAD", "ACTIVE", "INACTIVE", "ARCHIVED"];
 const TYPES = ["INDIVIDUAL", "ORGANIZATION"];
@@ -19,6 +20,7 @@ export default function ClientsPage() {
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const { show } = useToast();
 
   async function load() {
     setLoading(true);
@@ -46,6 +48,7 @@ export default function ClientsPage() {
       phone: data.phone,
     });
     await load();
+    show("Client added successfully");
   }
 
   return (

@@ -5,12 +5,14 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { CreateWorkflowModal } from "@/components/workflows/create-workflow-modal";
 import { fetchWorkflows, createWorkflow, ApiWorkflow } from "@/lib/api/workflows";
+import { useToast } from "@/components/ui/toast";
 
 export default function WorkflowsPage() {
   const [workflows, setWorkflows] = useState<ApiWorkflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const { show } = useToast();
 
   async function load() {
     setLoading(true);
@@ -32,6 +34,7 @@ export default function WorkflowsPage() {
   async function handleCreate(data: { title: string; stages: string[]; linkedTo?: string }) {
     await createWorkflow(data);
     await load();
+    show("Workflow created successfully");
   }
 
   return (

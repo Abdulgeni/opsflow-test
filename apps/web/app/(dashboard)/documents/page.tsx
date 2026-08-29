@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { UploadDocumentModal } from "@/components/documents/upload-document-modal";
 import { fetchDocuments, createDocument, ApiDocument } from "@/lib/api/documents";
+import { useToast } from "@/components/ui/toast";
 
 const CATEGORIES = ["Legal", "Property", "Finance", "Compliance"];
 
@@ -16,6 +17,7 @@ export default function DocumentsPage() {
   const [category, setCategory] = useState("");
   const [linkedTo, setLinkedTo] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const { show } = useToast();
 
   async function load() {
     setLoading(true);
@@ -40,6 +42,7 @@ export default function DocumentsPage() {
   async function handleUpload(data: { title: string; category: string; linkedTo: string }) {
     await createDocument(data);
     await load();
+    show("Document uploaded successfully");
   }
 
   return (
