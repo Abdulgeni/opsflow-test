@@ -106,7 +106,8 @@ async function handlePostComment() {
         ← Back to Workflows
       </Link>
 
-      <div className="flex items-start justify-between">
+      {/* Fixed header to stack on mobile */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="font-serif text-3xl text-primary">{wf.title}</h1>
           <p className="text-sm text-on-surface-variant mt-1">Created {new Date(wf.createdAt).toLocaleDateString()}</p>
@@ -161,7 +162,8 @@ async function handlePostComment() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      {/* Fixed grid to stack on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card title="Audit Trail">
           {wf.transitions.length === 0 ? (
             <p className="text-sm text-on-surface-variant">No transitions logged yet.</p>

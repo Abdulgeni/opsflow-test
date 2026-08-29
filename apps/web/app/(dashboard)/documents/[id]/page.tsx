@@ -32,7 +32,8 @@ export default function DocumentDetailPage() {
         ← Back to Documents
       </Link>
 
-      <div className="flex items-start justify-between">
+      {/* Fixed header to stack on mobile */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="font-serif text-3xl text-primary">{doc.title}</h1>
           <div className="flex items-center gap-2 mt-2">
@@ -47,7 +48,8 @@ export default function DocumentDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      {/* Fixed grid to stack on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card title="Version History">
           <div className="space-y-4">
             {doc.versions.map((v) => (

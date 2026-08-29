@@ -68,13 +68,15 @@ export default function ExecutiveSummaryPage() {
           { label: "Completion Rate", value: `${summary?.completionRate ?? 0}%` },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white rounded-lg border border-surface-container-highest shadow-card p-5">
-            <p className="text-xs font-medium text-on-surface-variant uppercase tracking-wide">{kpi.label}</p>
+            {/* Fixed KPI label size for mobile */}
+            <p className="text-[10px] md:text-xs font-medium text-on-surface-variant uppercase tracking-wide">{kpi.label}</p>
             <p className="font-serif text-3xl text-primary mt-2">{kpi.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      {/* Fixed grid to stack on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg border border-surface-container-highest shadow-card p-6">
           <h2 className="font-serif text-xl text-primary mb-4">Flagged Items</h2>
           {flags.length === 0 ? (
