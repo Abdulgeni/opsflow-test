@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getRecentViews } from "@/lib/recent";
+
+
+const [recent, setRecent] = useState<{ label: string; href: string }[]>([]);
 
 function authHeaders(): HeadersInit {
   const token = typeof window !== "undefined" ? localStorage.getItem("opsflow_token") : null;
@@ -19,8 +23,10 @@ interface Summary {
 export default function DashboardPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [userName, setUserName] = useState("");
+  const [recent, setRecent] = useState<{ label: string; href: string }[]>([]);
 
   useEffect(() => {
+    setRecent(getRecentViews());
     const stored = localStorage.getItem("opsflow_user");
     if (stored) setUserName(JSON.parse(stored).name ?? "");
 
@@ -36,8 +42,25 @@ export default function DashboardPage() {
     { label: "Documents", href: "/documents", value: summary?.documents },
     { label: "Open Workflows", href: "/workflows", value: summary?.openWorkflows },
   ];
+  {recent.length > 0 && (
+  <div>
+    <h2 className="font-serif text-lg text-primary mb-3">Recently Viewed</h2>
+    <div className="flex flex-wrap gap-2">
+      {recent.map((r) => (
+        <Link
+          key={r.href}
+          href={r.href}
+          className="text-sm bg-white border border-surface-container-highest rounded-full px-3 py-1.5 hover:border-gold transition-colors"
+        >
+          {r.label}
+        </Link>
+      ))}
+    </div>
+  </div>
+)}
 
   return (
+    
     <div className="space-y-6">
       <div>
         <h1 className="font-serif text-3xl text-primary">Welcome back{userName ? `, ${userName}` : ""}</h1>
