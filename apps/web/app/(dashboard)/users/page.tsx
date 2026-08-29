@@ -9,8 +9,6 @@ import { PERMISSION_MATRIX, Role } from "@/lib/mock-data";
 
 const ROLES: Role[] = ["Admin", "Manager", "Staff"];
 
-// Backend roles are UPPERCASE (ADMIN), frontend/mock roles are Title Case
-// (Admin) — this maps between the two until we unify the types.
 function displayRole(role: ApiUser["role"]): Role {
   return (role.charAt(0) + role.slice(1).toLowerCase()) as Role;
 }
@@ -32,6 +30,8 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [lastActivationLink, setLastActivationLink] = useState<{ email: string; link: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   async function loadUsers() {
     setLoading(true);
@@ -51,13 +51,24 @@ export default function UsersPage() {
   }, []);
 
   async function handleAdd(data: { name: string; department: string; role: Role }) {
-    await createUser({
+    const email = `${data.name.toLowerCase().replace(/\s+/g, ".")}@goldenage.com`;
+    const result = await createUser({
       name: data.name,
-      email: `${data.name.toLowerCase().replace(/\s+/g, ".")}@goldenage.com`,
+      email,
       department: data.department,
       role: data.role.toUpperCase() as ApiUser["role"],
     });
-    await loadUsers(); // refetch so the list reflects the real database
+    const link = `${window.location.origin}/activate?token=${result.activationToken}`;
+    setLastActivationLink({ email, link });
+    setCopied(false);
+    await loadUsers();
+  }
+
+  function copyLink() {
+    if (!lastActivationLink) return;
+    navigator.clipboard.writeText(lastActivationLink.link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -66,11 +77,30 @@ export default function UsersPage() {
         <h1 className="font-serif text-3xl text-primary">Users</h1>
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
         >
           + Add user
         </button>
       </div>
+
+      {lastActivationLink && (
+        <div className="bg-status-progress-bg border border-status-progress-text/20 rounded-lg p-4 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-status-progress-text">
+              User created: {lastActivationLink.email}
+            </p>
+            <p className="text-xs text-status-progress-text/80 mt-1">
+              Share this activation link with them to let them set a password.
+            </p>
+          </div>
+          <button
+            onClick={copyLink}
+            className="bg-white border border-status-progress-text/30 text-status-progress-text px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-status-progress-bg/50 transition-colors cursor-pointer flex-shrink-0 ml-4"
+          >
+            {copied ? "Copied ✓" : "Copy activation link"}
+          </button>
+        </div>
+      )}
 
       <Card>
         {loading && (
@@ -80,22 +110,19 @@ export default function UsersPage() {
             ))}
           </div>
         )}
-
         {error && (
           <div className="text-center py-10">
             <p className="text-sm text-status-negative-text mb-2">{error}</p>
-            <button onClick={loadUsers} className="text-sm text-gold underline">
+            <button onClick={loadUsers} className="text-sm text-gold underline cursor-pointer">
               Retry
             </button>
           </div>
         )}
-
         {!loading && !error && users.length === 0 && (
           <div className="text-center py-10">
             <p className="text-sm text-on-surface-variant">No users yet.</p>
           </div>
         )}
-
         {!loading && !error && users.length > 0 && (
           <table className="w-full text-left border-collapse">
             <thead>
