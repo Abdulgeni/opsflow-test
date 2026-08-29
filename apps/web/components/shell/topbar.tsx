@@ -82,9 +82,20 @@ export function TopBar() {
         <button
           onClick={toggleDarkMode}
           aria-label="Toggle dark mode"
-          className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors overflow-hidden"
         >
-          {darkMode ? "☀" : "🌙"}
+          <span className={`inline-block transition-transform duration-500 ${darkMode ? "rotate-180" : "rotate-0"}`}>
+            {darkMode ? (
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <circle cx="12" cy="12" r="5" />
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+              </svg>
+            ) : (
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+              </svg>
+            )}
+          </span>
         </button>
 
         <div ref={helpRef} className="relative">
@@ -96,7 +107,7 @@ export function TopBar() {
             ?
           </button>
           {helpOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white border border-surface-container-highest rounded-lg shadow-card p-4 z-50">
+            <div className="dropdown-in absolute right-0 mt-2 w-64 bg-white border border-surface-container-highest rounded-lg shadow-card p-4 z-50">
               <p className="text-sm font-medium text-on-surface mb-2">Need help?</p>
               <ul className="space-y-2 text-sm text-on-surface-variant">
                 <li>
@@ -130,7 +141,7 @@ export function TopBar() {
             )}
           </button>
           {notifOpen && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-surface-container-highest rounded-lg shadow-card z-50 max-h-96 overflow-y-auto">
+            <div className="dropdown-in absolute right-0 mt-2 w-80 bg-white border border-surface-container-highest rounded-lg shadow-card z-50 max-h-96 overflow-y-auto">
               <div className="p-4 border-b border-surface-container-highest">
                 <p className="text-sm font-medium text-on-surface">Notifications</p>
               </div>
@@ -164,7 +175,7 @@ export function TopBar() {
             <span className="hidden md:inline text-sm text-on-surface">Profile</span>
           </button>
           {profileOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white border border-surface-container-highest rounded-lg shadow-card p-4 z-50">
+            <div className="dropdown-in absolute right-0 mt-2 w-64 bg-white border border-surface-container-highest rounded-lg shadow-card p-4 z-50">
               <p className="text-sm font-medium text-on-surface">{user?.name ?? "Unknown"}</p>
               <p className="text-xs text-on-surface-variant mt-1">{user?.email ?? ""}</p>
               <p className="text-xs text-on-surface-variant mt-1">Role: {user?.role ?? ""}</p>

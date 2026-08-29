@@ -30,8 +30,8 @@ export function AddClientModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-card p-8 w-full max-w-md">
+    <div className="overlay-in fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="modal-in bg-white rounded-xl shadow-card p-8 w-full max-w-md">
         <h2 className="font-serif text-2xl text-primary mb-1">Add client</h2>
         <p className="text-sm text-on-surface-variant mb-6">
           Enter the details for the new client.
