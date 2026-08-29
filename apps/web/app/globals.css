@@ -146,3 +146,12 @@ button:active {
     grid-template-columns: 1fr !important;
   }
 }
+.dark { color-scheme: dark; }
+.dark body { background: #0f0f0f; }
+.dark .bg-ivory { background-color: #17171a !important; }
+.dark .bg-white { background-color: #1f1f22 !important; }
+.dark .text-primary { color: #f4f3f3 !important; }
+.dark .text-on-surface { color: #e5e5e5 !important; }
+.dark .text-on-surface-variant { color: #9a9a9a !important; }
+.dark .border-surface-container-highest { border-color: #333336 !important; }
+.dark .bg-surface-container-low { background-color: #26262a !important; }
