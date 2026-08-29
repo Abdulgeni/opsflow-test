@@ -70,7 +70,7 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <h1 className="font-serif text-3xl text-primary">Analytics</h1>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Properties", value: summary.properties },
           { label: "Active Clients", value: summary.activeClients },

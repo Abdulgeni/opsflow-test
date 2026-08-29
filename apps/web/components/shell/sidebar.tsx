@@ -82,7 +82,7 @@ export function Sidebar() {
       )}
 
       {/* Desktop sidebar — hidden below md breakpoint */}
-      <aside className="hidden md:flex w-[280px] flex-shrink-0 bg-charcoal text-white flex-col">
+      <aside className="hidden md:flex w-60 lg:w-64 xl:w-72 flex-shrink-0 bg-charcoal text-white flex-col">
         <div className="p-6 flex items-center gap-2 border-b border-white/10">
           <span className="w-7 h-7 rounded bg-charcoal border border-gold flex items-center justify-center text-gold text-sm">∞</span>
           <div>

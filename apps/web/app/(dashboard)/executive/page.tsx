@@ -58,7 +58,7 @@ export default function ExecutiveSummaryPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Properties", value: summary?.properties ?? 0 },
           { label: "Active Clients", value: summary?.activeClients ?? 0 },

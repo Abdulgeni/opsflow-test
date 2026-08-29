@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { AddPropertyModal } from "@/components/properties/add-property-modal";
 import { fetchProperties, createProperty, ApiProperty } from "@/lib/api/properties";
 import { propertyStatusTone, statusLabel } from "@/lib/status-tones";
+import { useToast } from "@/components/ui/toast";
 
 const STATUSES = ["AVAILABLE", "OCCUPIED", "UNDER_MAINTENANCE", "DECOMMISSIONED"];
 
@@ -18,6 +19,7 @@ export default function PropertiesPage() {
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const { show } = useToast();
 
   async function load() {
     setLoading(true);
@@ -37,9 +39,10 @@ export default function PropertiesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, status, type]);
 
-  async function handleAdd(data: { name: string; address: string; type: string }) {
+ async function handleAdd(data: { name: string; address: string; type: string }) {
     await createProperty(data);
     await load();
+    show("Property added successfully");
   }
 
   return (

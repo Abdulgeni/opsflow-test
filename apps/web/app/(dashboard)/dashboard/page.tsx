@@ -44,7 +44,7 @@ export default function DashboardPage() {
         <p className="text-sm text-on-surface-variant mt-1">Here's a quick overview of OpsFlow.</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {cards.map((c) => (
           <Link
             key={c.label}
