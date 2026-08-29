@@ -49,7 +49,7 @@ export default function DashboardPage() {
           <Link
             key={c.label}
             href={c.href}
-            className="bg-white rounded-lg border border-surface-container-highest shadow-card p-5 hover:border-gold transition-colors"
+            className="hover-lift bg-white rounded-lg border border-surface-container-highest shadow-card p-5 hover:border-gold"
           >
             <p className="text-xs font-medium text-on-surface-variant uppercase tracking-wide">{c.label}</p>
             <p className="font-serif text-3xl text-primary mt-2">{c.value ?? "—"}</p>
