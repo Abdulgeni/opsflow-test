@@ -25,6 +25,9 @@
 
   --font-serif: "Playfair Display", serif;
   --font-sans: "Inter", sans-serif;
+    --color-charcoal-dark: #0f0f0f;
+  --color-ivory-dark: #17171a;
+  --color-surface-dark: #232326;
 }
 
 /* ── Cursor ────────────────────────────────────────────── */
