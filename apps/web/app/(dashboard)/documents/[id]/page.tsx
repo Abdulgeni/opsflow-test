@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { fetchDocument, ApiDocument, ApiDocumentVersion } from "@/lib/api/documents";
+import { trackRecentView } from "@/lib/recent";
 
 export default function DocumentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,7 +15,10 @@ export default function DocumentDetailPage() {
 
   useEffect(() => {
     fetchDocument(id)
-      .then(setDoc)
+      .then((data) => {
+        setDoc(data);
+        trackRecentView(data.title, `/documents/${id}`);
+      })
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load document"))
       .finally(() => setLoading(false));
   }, [id]);

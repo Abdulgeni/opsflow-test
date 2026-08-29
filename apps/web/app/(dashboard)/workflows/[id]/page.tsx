@@ -14,6 +14,7 @@ import {
   ApiTransition,
   ApiWorkflowComment,
 } from "@/lib/api/workflows";
+import { trackRecentView } from "@/lib/recent";
 
 type FullWorkflow = ApiWorkflow & { transitions: ApiTransition[]; comments: ApiWorkflowComment[] };
 
@@ -30,6 +31,7 @@ export default function WorkflowDetailPage() {
     setError(null);
     try {
       const data = await fetchWorkflow(id);
+      trackRecentView(data.title, `/workflows/${id}`);
       setWf(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load workflow");
@@ -40,6 +42,7 @@ export default function WorkflowDetailPage() {
 
   useEffect(() => {
     load();
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 

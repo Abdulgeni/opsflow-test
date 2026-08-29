@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { fetchClient, ApiClient, ApiContactLog } from "@/lib/api/clients";
 import { clientStatusTone, statusLabel } from "@/lib/status-tones";
+import { trackRecentView } from "@/lib/recent";
 
 export default function ClientDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,12 +15,15 @@ export default function ClientDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchClient(id)
-      .then(setClient)
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load client"))
-      .finally(() => setLoading(false));
-  }, [id]);
+useEffect(() => {
+  fetchClient(id)
+    .then((data) => {
+      setClient(data);
+      trackRecentView(data.name, `/clients/${id}`);
+    })
+    .catch((err) => setError(err instanceof Error ? err.message : "Failed to load client"))
+    .finally(() => setLoading(false));
+}, [id]);
 
   if (loading) return <div className="h-40 bg-surface-container-low rounded animate-pulse" />;
   if (error || !client) return <div className="text-sm text-status-negative-text">{error ?? "Client not found."}</div>;

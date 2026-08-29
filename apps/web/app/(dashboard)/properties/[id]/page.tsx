@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { fetchProperty, ApiProperty, ApiMaintenanceRequest } from "@/lib/api/properties";
 import { propertyStatusTone, maintenanceStatusTone, statusLabel } from "@/lib/status-tones";
+import { trackRecentView } from "@/lib/recent";
 
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,9 +15,12 @@ export default function PropertyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+ useEffect(() => {
     fetchProperty(id)
-      .then(setProperty)
+      .then((data) => {
+        setProperty(data);
+        trackRecentView(data.name, `/properties/${id}`);
+      })
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load property"))
       .finally(() => setLoading(false));
   }, [id]);
