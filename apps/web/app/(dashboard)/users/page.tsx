@@ -50,16 +50,15 @@ export default function UsersPage() {
     loadUsers();
   }, []);
 
-  async function handleAdd(data: { name: string; department: string; role: Role }) {
-    const email = `${data.name.toLowerCase().replace(/\s+/g, ".")}@goldenage.com`;
+  async function handleAdd(data: { name: string; email: string; department: string; role: Role }) {
     const result = await createUser({
       name: data.name,
-      email,
+      email: data.email,
       department: data.department,
       role: data.role.toUpperCase() as ApiUser["role"],
     });
     const link = `${window.location.origin}/activate?token=${result.activationToken}`;
-    setLastActivationLink({ email, link });
+    setLastActivationLink({ email: data.email, link });
     setCopied(false);
     await loadUsers();
   }
