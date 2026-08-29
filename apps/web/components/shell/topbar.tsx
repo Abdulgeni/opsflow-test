@@ -158,10 +158,11 @@ export function TopBar() {
             <div className="mt-3 pt-3 border-t border-surface-container-highest">
               <Link
                 href="/sign-in"
-                onClick={() => {
-                  localStorage.removeItem("opsflow_token");
-                  localStorage.removeItem("opsflow_user");
-                }}
+               onClick={() => {
+  localStorage.removeItem("opsflow_token");
+  localStorage.removeItem("opsflow_user");
+  document.cookie = "opsflow_token=; path=/; max-age=0";
+}}
                 className="text-sm text-status-negative-text hover:underline"
               >
                 Sign out
