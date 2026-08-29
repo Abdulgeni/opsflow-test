@@ -37,7 +37,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors relative ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm relative ${
                 active
                   ? "bg-white/5 text-white"
                   : "text-white/60 hover:text-white/90 hover:bg-white/5"
