@@ -123,29 +123,31 @@ export default function UsersPage() {
           </div>
         )}
         {!loading && !error && users.length > 0 && (
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
-                {["Name", "Department", "Role", "Status"].map((h) => (
-                  <th key={h} className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-container-highest">
-              {users.map((u) => (
-                <tr key={u.id} className="hover:bg-surface-bright/50 transition-colors">
-                  <td className="py-4 px-2 text-sm text-primary font-medium">{u.name}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{u.department ?? "—"}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{displayRole(u.role)}</td>
-                  <td className="py-4 px-2">
-                    <Badge tone={statusTone(u.status)}>{displayStatus(u.status)}</Badge>
-                  </td>
+          <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
+            <table className="w-full text-left border-collapse min-w-[640px]">
+              <thead>
+                <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
+                  {["Name", "Department", "Role", "Status"].map((h) => (
+                    <th key={h} className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-surface-container-highest">
+                {users.map((u) => (
+                  <tr key={u.id} className="hover:bg-surface-bright/50 transition-colors">
+                    <td className="py-4 px-2 text-sm text-primary font-medium">{u.name}</td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">{u.department ?? "—"}</td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">{displayRole(u.role)}</td>
+                    <td className="py-4 px-2">
+                      <Badge tone={statusTone(u.status)}>{displayStatus(u.status)}</Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
 
@@ -153,26 +155,33 @@ export default function UsersPage() {
         <p className="text-sm text-on-surface-variant mb-4 -mt-2">
           Default access levels by role across modules. Reference only.
         </p>
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-surface-container-highest">
-              <th className="py-3 px-2 text-xs font-medium text-on-surface-variant uppercase">Module</th>
-              {ROLES.map((r) => (
-                <th key={r} className="py-3 px-2 text-xs font-medium text-on-surface-variant uppercase">{r}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-surface-container-highest">
-            {Object.entries(PERMISSION_MATRIX).map(([module, perms]) => (
-              <tr key={module}>
-                <td className="py-3 px-2 text-sm text-primary font-medium">{module}</td>
+
+        <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
+          <table className="w-full text-left border-collapse min-w-[640px]">
+            <thead>
+              <tr className="border-b border-surface-container-highest">
+                <th className="py-3 px-2 text-xs font-medium text-on-surface-variant uppercase">Module</th>
                 {ROLES.map((r) => (
-                  <td key={r} className="py-3 px-2 text-sm text-on-surface-variant">{perms[r]}</td>
+                  <th key={r} className="py-3 px-2 text-xs font-medium text-on-surface-variant uppercase">
+                    {r}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-surface-container-highest">
+              {Object.entries(PERMISSION_MATRIX).map(([module, perms]) => (
+                <tr key={module}>
+                  <td className="py-3 px-2 text-sm text-primary font-medium">{module}</td>
+                  {ROLES.map((r) => (
+                    <td key={r} className="py-3 px-2 text-sm text-on-surface-variant">
+                      {perms[r]}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       <AddUserModal open={modalOpen} onClose={() => setModalOpen(false)} onAdd={handleAdd} />

@@ -58,7 +58,7 @@ export default function DocumentsPage() {
       </div>
 
       <Card>
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
           <input
             type="text"
             placeholder="Search documents..."
@@ -73,7 +73,9 @@ export default function DocumentsPage() {
           >
             <option value="">Category: All</option>
             {CATEGORIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
           </select>
           <select
@@ -83,7 +85,9 @@ export default function DocumentsPage() {
           >
             <option value="">Linked to: All</option>
             {linkedToOptions.map((l) => (
-              <option key={l} value={l}>{l}</option>
+              <option key={l} value={l}>
+                {l}
+              </option>
             ))}
           </select>
         </div>
@@ -99,7 +103,9 @@ export default function DocumentsPage() {
         {error && (
           <div className="text-center py-10">
             <p className="text-sm text-status-negative-text mb-2">{error}</p>
-            <button onClick={load} className="text-sm text-gold underline">Retry</button>
+            <button onClick={load} className="text-sm text-gold underline">
+              Retry
+            </button>
           </div>
         )}
 
@@ -110,33 +116,35 @@ export default function DocumentsPage() {
         )}
 
         {!loading && !error && documents.length > 0 && (
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
-                {["Title", "Category", "Linked to", "Uploaded by", "Version", "Date"].map((h) => (
-                  <th key={h} className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-container-highest">
-              {documents.map((d) => (
-                <tr key={d.id} className="hover:bg-surface-bright/50 transition-colors">
-                  <td className="py-4 px-2">
-                    <Link href={`/documents/${d.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
-                      {d.title}
-                    </Link>
-                  </td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{d.category}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{d.linkedTo}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{d.uploadedBy.name}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">v{d.version}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{new Date(d.createdAt).toLocaleDateString()}</td>
+          <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
+            <table className="w-full text-left border-collapse min-w-[640px]">
+              <thead>
+                <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
+                  {["Title", "Category", "Linked to", "Uploaded by", "Version", "Date"].map((h) => (
+                    <th key={h} className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-surface-container-highest">
+                {documents.map((d) => (
+                  <tr key={d.id} className="hover:bg-surface-bright/50 transition-colors">
+                    <td className="py-4 px-2">
+                      <Link href={`/documents/${d.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
+                        {d.title}
+                      </Link>
+                    </td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">{d.category}</td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">{d.linkedTo}</td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">{d.uploadedBy.name}</td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">v{d.version}</td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">{new Date(d.createdAt).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
 

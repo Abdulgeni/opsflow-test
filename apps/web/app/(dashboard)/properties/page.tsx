@@ -39,7 +39,7 @@ export default function PropertiesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, status, type]);
 
- async function handleAdd(data: { name: string; address: string; type: string }) {
+  async function handleAdd(data: { name: string; address: string; type: string }) {
     await createProperty(data);
     await load();
     show("Property added successfully");
@@ -58,7 +58,7 @@ export default function PropertiesPage() {
       </div>
 
       <Card>
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
           <input
             type="text"
             placeholder="Search properties..."
@@ -73,7 +73,9 @@ export default function PropertiesPage() {
           >
             <option value="">Status: All</option>
             {STATUSES.map((s) => (
-              <option key={s} value={s}>{statusLabel(s)}</option>
+              <option key={s} value={s}>
+                {statusLabel(s)}
+              </option>
             ))}
           </select>
           <select
@@ -99,7 +101,9 @@ export default function PropertiesPage() {
         {error && (
           <div className="text-center py-10">
             <p className="text-sm text-status-negative-text mb-2">{error}</p>
-            <button onClick={load} className="text-sm text-gold underline">Retry</button>
+            <button onClick={load} className="text-sm text-gold underline">
+              Retry
+            </button>
           </div>
         )}
 
@@ -110,33 +114,35 @@ export default function PropertiesPage() {
         )}
 
         {!loading && !error && properties.length > 0 && (
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
-                {["Name", "Address", "Type", "Status"].map((h) => (
-                  <th key={h} className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-container-highest">
-              {properties.map((p) => (
-                <tr key={p.id} className="hover:bg-surface-bright/50 transition-colors">
-                  <td className="py-4 px-2">
-                    <Link href={`/properties/${p.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
-                      {p.name}
-                    </Link>
-                  </td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{p.address}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface">{p.type}</td>
-                  <td className="py-4 px-2">
-                    <Badge tone={propertyStatusTone(p.status)}>{statusLabel(p.status)}</Badge>
-                  </td>
+          <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
+            <table className="w-full text-left border-collapse min-w-[640px]">
+              <thead>
+                <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
+                  {["Name", "Address", "Type", "Status"].map((h) => (
+                    <th key={h} className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-surface-container-highest">
+                {properties.map((p) => (
+                  <tr key={p.id} className="hover:bg-surface-bright/50 transition-colors">
+                    <td className="py-4 px-2">
+                      <Link href={`/properties/${p.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
+                        {p.name}
+                      </Link>
+                    </td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">{p.address}</td>
+                    <td className="py-4 px-2 text-sm text-on-surface">{p.type}</td>
+                    <td className="py-4 px-2">
+                      <Badge tone={propertyStatusTone(p.status)}>{statusLabel(p.status)}</Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
 

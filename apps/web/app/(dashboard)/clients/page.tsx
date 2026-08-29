@@ -64,7 +64,7 @@ export default function ClientsPage() {
       </div>
 
       <Card>
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
           <input
             type="text"
             placeholder="Search clients..."
@@ -79,7 +79,9 @@ export default function ClientsPage() {
           >
             <option value="">Status: All</option>
             {STATUSES.map((s) => (
-              <option key={s} value={s}>{statusLabel(s)}</option>
+              <option key={s} value={s}>
+                {statusLabel(s)}
+              </option>
             ))}
           </select>
           <select
@@ -89,7 +91,9 @@ export default function ClientsPage() {
           >
             <option value="">Type: All</option>
             {TYPES.map((t) => (
-              <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>
+              <option key={t} value={t}>
+                {t.charAt(0) + t.slice(1).toLowerCase()}
+              </option>
             ))}
           </select>
         </div>
@@ -105,7 +109,9 @@ export default function ClientsPage() {
         {error && (
           <div className="text-center py-10">
             <p className="text-sm text-status-negative-text mb-2">{error}</p>
-            <button onClick={load} className="text-sm text-gold underline">Retry</button>
+            <button onClick={load} className="text-sm text-gold underline">
+              Retry
+            </button>
           </div>
         )}
 
@@ -116,32 +122,38 @@ export default function ClientsPage() {
         )}
 
         {!loading && !error && clients.length > 0 && (
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
-                {["Name", "Type", "Email", "Phone", "Status"].map((h) => (
-                  <th key={h} className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-container-highest">
-              {clients.map((c) => (
-                <tr key={c.id} className="hover:bg-surface-bright/50 transition-colors">
-                  <td className="py-4 px-2">
-                    <Link href={`/clients/${c.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
-                      {c.name}
-                    </Link>
-                  </td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{c.type.charAt(0) + c.type.slice(1).toLowerCase()}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{c.email}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{c.phone ?? "—"}</td>
-                  <td className="py-4 px-2"><Badge tone={clientStatusTone(c.status)}>{statusLabel(c.status)}</Badge></td>
+          <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
+            <table className="w-full text-left border-collapse min-w-[640px]">
+              <thead>
+                <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
+                  {["Name", "Type", "Email", "Phone", "Status"].map((h) => (
+                    <th key={h} className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-surface-container-highest">
+                {clients.map((c) => (
+                  <tr key={c.id} className="hover:bg-surface-bright/50 transition-colors">
+                    <td className="py-4 px-2">
+                      <Link href={`/clients/${c.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
+                        {c.name}
+                      </Link>
+                    </td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">
+                      {c.type.charAt(0) + c.type.slice(1).toLowerCase()}
+                    </td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">{c.email}</td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">{c.phone ?? "—"}</td>
+                    <td className="py-4 px-2">
+                      <Badge tone={clientStatusTone(c.status)}>{statusLabel(c.status)}</Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
 

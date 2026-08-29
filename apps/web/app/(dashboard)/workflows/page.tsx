@@ -57,39 +57,58 @@ export default function WorkflowsPage() {
             ))}
           </div>
         )}
+
         {error && <p className="text-sm text-status-negative-text text-center py-10">{error}</p>}
+
         {!loading && !error && workflows.length === 0 && (
           <p className="text-sm text-on-surface-variant text-center py-10">No workflows yet.</p>
         )}
+
         {!loading && !error && workflows.length > 0 && (
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
-                {["Title", "Current Stage", "Created"].map((h) => (
-                  <th key={h} className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-container-highest">
-              {workflows.map((wf) => (
-                <tr key={wf.id} className="hover:bg-surface-bright/50 transition-colors">
-                  <td className="py-4 px-2">
-                    <Link href={`/workflows/${wf.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
-                      {wf.title}
-                    </Link>
-                  </td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{wf.stages[wf.currentStageIndex]}</td>
-                  <td className="py-4 px-2 text-sm text-on-surface-variant">{new Date(wf.createdAt).toLocaleDateString()}</td>
+          <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
+            <table className="w-full text-left border-collapse min-w-[640px]">
+              <thead>
+                <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
+                  {["Title", "Current Stage", "Created"].map((h) => (
+                    <th
+                      key={h}
+                      className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide"
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-surface-container-highest">
+                {workflows.map((wf) => (
+                  <tr key={wf.id} className="hover:bg-surface-bright/50 transition-colors">
+                    <td className="py-4 px-2">
+                      <Link
+                        href={`/workflows/${wf.id}`}
+                        className="text-sm text-primary font-medium hover:text-gold transition-colors"
+                      >
+                        {wf.title}
+                      </Link>
+                    </td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">
+                      {wf.stages[wf.currentStageIndex]}
+                    </td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">
+                      {new Date(wf.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
 
-      <CreateWorkflowModal open={modalOpen} onClose={() => setModalOpen(false)} onCreate={handleCreate} />
+      <CreateWorkflowModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onCreate={handleCreate}
+      />
     </div>
   );
 }
