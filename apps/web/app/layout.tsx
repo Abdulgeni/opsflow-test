@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Providers } from "./providers";
+import { ThemeInit } from "./theme-init";
 
 export const metadata = {
   title: "OpsFlow",
@@ -17,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="font-sans bg-ivory">
-        <Providers>{children}</Providers>
+        <Providers><ThemeInit />{children}</Providers>
       </body>
     </html>
   );
