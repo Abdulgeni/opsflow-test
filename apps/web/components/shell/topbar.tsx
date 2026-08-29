@@ -83,7 +83,12 @@ export function TopBar() {
             <p className="text-sm font-medium text-on-surface mb-2">Need help?</p>
             <ul className="space-y-2 text-sm text-on-surface-variant">
               <li>
-                <a href="mailto:support@goldenage.com" className="hover:text-gold transition-colors">
+                <a 
+  href="https://mail.google.com/mail/?view=cm&fs=1&to=abdulgeniabdulaziz@gmail.com&su=OpsFlow%20Support"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="hover:text-gold transition-colors"
+>
                   Contact support
                 </a>
               </li>
