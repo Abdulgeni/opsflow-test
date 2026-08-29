@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { getTheme, setTheme } from "@/lib/theme"
+
+const [darkMode, setDarkMode] = useState(false); useEffect(() => setDarkMode(getTheme() === "dark"), []);
 
 function authHeaders(): HeadersInit {
   const token = typeof window !== "undefined" ? localStorage.getItem("opsflow_token") : null;
@@ -69,6 +72,17 @@ export function TopBar() {
 
   return (
     <header className="h-16 border-b border-surface-container-highest bg-white flex items-center justify-end gap-4 px-8 flex-shrink-0 relative">
+      <button
+  onClick={() => {
+    const next = getTheme() === "dark" ? "light" : "dark";
+    setTheme(next);
+    setDarkMode(next === "dark");
+  }}
+  aria-label="Toggle dark mode"
+  className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors"
+>
+  {darkMode ? "☀" : "🌙"}
+</button>
       {/* Help */}
       <div ref={helpRef} className="relative">
         <button
