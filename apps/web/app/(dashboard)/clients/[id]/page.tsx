@@ -46,7 +46,7 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="space-y-6">
           <Card title="Contact Log">
             {client.contactLogs.length === 0 ? (
