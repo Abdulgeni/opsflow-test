@@ -97,12 +97,15 @@ export function TopBar() {
 
       {/* Notifications */}
       <div ref={notifRef} className="relative">
-        <button
-          onClick={() => setNotifOpen((v) => !v)}
-          aria-label="Notifications"
-          className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors relative"
-        >
-          🔔
+       <button
+  onClick={() => setNotifOpen((v) => !v)}
+  aria-label="Notifications"
+  className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors relative"
+>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+    <path d="M13.73 21a2 2 0 01-3.46 0" />
+  </svg>
           {unreadCount > 0 && (
             <span className="absolute top-1 right-1 w-2 h-2 bg-status-negative-text rounded-full" />
           )}
