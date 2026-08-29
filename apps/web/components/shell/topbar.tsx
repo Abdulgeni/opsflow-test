@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { getTheme, setTheme } from "@/lib/theme"
-
-const [darkMode, setDarkMode] = useState(false); useEffect(() => setDarkMode(getTheme() === "dark"), []);
+import { getTheme, setTheme } from "@/lib/theme";
+import { SearchBar } from "./search-bar";
 
 function authHeaders(): HeadersInit {
   const token = typeof window !== "undefined" ? localStorage.getItem("opsflow_token") : null;
@@ -30,18 +29,18 @@ export function TopBar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [user, setUser] = useState<CurrentUser | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
 
   const helpRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  // Load the signed-in user from localStorage (saved at sign-in)
   useEffect(() => {
     const stored = localStorage.getItem("opsflow_user");
     if (stored) setUser(JSON.parse(stored));
+    setDarkMode(getTheme() === "dark");
   }, []);
 
-  // Load notifications once on mount
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications`, { headers: authHeaders() })
       .then((r) => (r.ok ? r.json() : []))
@@ -49,7 +48,6 @@ export function TopBar() {
       .catch(() => setNotifications([]));
   }, []);
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (helpRef.current && !helpRef.current.contains(e.target as Node)) setHelpOpen(false);
@@ -68,127 +66,124 @@ export function TopBar() {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
   }
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
-
-  return (
-    <header className="h-16 border-b border-surface-container-highest bg-white flex items-center justify-end gap-4 px-8 flex-shrink-0 relative">
-      <button
-  onClick={() => {
+  function toggleDarkMode() {
     const next = getTheme() === "dark" ? "light" : "dark";
     setTheme(next);
     setDarkMode(next === "dark");
-  }}
-  aria-label="Toggle dark mode"
-  className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors"
->
-  {darkMode ? "☀" : "🌙"}
-</button>
-      {/* Help */}
-      <div ref={helpRef} className="relative">
+  }
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  return (
+    <header className="h-16 border-b border-surface-container-highest bg-white flex items-center justify-between gap-4 px-4 md:px-8 flex-shrink-0 relative">
+      <SearchBar />
+
+      <div className="flex items-center gap-2 md:gap-4">
         <button
-          onClick={() => setHelpOpen((v) => !v)}
-          aria-label="Help"
+          onClick={toggleDarkMode}
+          aria-label="Toggle dark mode"
           className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors"
         >
-          ?
+          {darkMode ? "☀" : "🌙"}
         </button>
-        {helpOpen && (
-          <div className="absolute right-0 mt-2 w-64 bg-white border border-surface-container-highest rounded-lg shadow-card p-4 z-50">
-            <p className="text-sm font-medium text-on-surface mb-2">Need help?</p>
-            <ul className="space-y-2 text-sm text-on-surface-variant">
-              <li>
-                <a 
-  href="https://mail.google.com/mail/?view=cm&fs=1&to=abdulgeniabdulaziz@gmail.com&su=OpsFlow%20Support"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="hover:text-gold transition-colors"
->
-                  Contact support
-                </a>
-              </li>
-              <li>
-                <span>Version: OpsFlow v1.0</span>
-              </li>
-            </ul>
-          </div>
-        )}
-      </div>
 
-      {/* Notifications */}
-      <div ref={notifRef} className="relative">
-       <button
-  onClick={() => setNotifOpen((v) => !v)}
-  aria-label="Notifications"
-  className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors relative"
->
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 01-3.46 0" />
-  </svg>
-          {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 w-2 h-2 bg-status-negative-text rounded-full" />
-          )}
-        </button>
-        {notifOpen && (
-          <div className="absolute right-0 mt-2 w-80 bg-white border border-surface-container-highest rounded-lg shadow-card z-50 max-h-96 overflow-y-auto">
-            <div className="p-4 border-b border-surface-container-highest">
-              <p className="text-sm font-medium text-on-surface">Notifications</p>
-            </div>
-            {notifications.length === 0 ? (
-              <p className="text-sm text-on-surface-variant p-4">No notifications yet.</p>
-            ) : (
-              <div className="divide-y divide-surface-container-highest">
-                {notifications.map((n) => (
-                  <button
-                    key={n.id}
-                    onClick={() => markRead(n.id)}
-                    className={`w-full text-left p-4 text-sm hover:bg-surface-container-low transition-colors ${
-                      n.isRead ? "text-on-surface-variant" : "text-on-surface font-medium"
-                    }`}
+        <div ref={helpRef} className="relative">
+          <button
+            onClick={() => setHelpOpen((v) => !v)}
+            aria-label="Help"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors"
+          >
+            ?
+          </button>
+          {helpOpen && (
+            <div className="absolute right-0 mt-2 w-64 bg-white border border-surface-container-highest rounded-lg shadow-card p-4 z-50">
+              <p className="text-sm font-medium text-on-surface mb-2">Need help?</p>
+              <ul className="space-y-2 text-sm text-on-surface-variant">
+                <li>
+                  <a
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=abdulgeniabdulaziz@gmail.com&su=OpsFlow%20Support"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-gold transition-colors"
                   >
-                    <p>{n.message}</p>
-                    <p className="text-xs text-on-surface-variant mt-1">
-                      {new Date(n.createdAt).toLocaleString()}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Profile */}
-      <div ref={profileRef} className="relative">
-        <button
-          onClick={() => setProfileOpen((v) => !v)}
-          className="flex items-center gap-2"
-        >
-          <span className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-sm text-on-surface">
-            {user?.name?.[0] ?? "U"}
-          </span>
-          <span className="text-sm text-on-surface">Profile</span>
-        </button>
-        {profileOpen && (
-          <div className="absolute right-0 mt-2 w-64 bg-white border border-surface-container-highest rounded-lg shadow-card p-4 z-50">
-            <p className="text-sm font-medium text-on-surface">{user?.name ?? "Unknown"}</p>
-            <p className="text-xs text-on-surface-variant mt-1">{user?.email ?? ""}</p>
-            <p className="text-xs text-on-surface-variant mt-1">Role: {user?.role ?? ""}</p>
-            <div className="mt-3 pt-3 border-t border-surface-container-highest">
-              <Link
-                href="/sign-in"
-               onClick={() => {
-  localStorage.removeItem("opsflow_token");
-  localStorage.removeItem("opsflow_user");
-  document.cookie = "opsflow_token=; path=/; max-age=0";
-}}
-                className="text-sm text-status-negative-text hover:underline"
-              >
-                Sign out
-              </Link>
+                    Contact support
+                  </a>
+                </li>
+                <li><span>Version: OpsFlow v1.0</span></li>
+              </ul>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        <div ref={notifRef} className="relative">
+          <button
+            onClick={() => setNotifOpen((v) => !v)}
+            aria-label="Notifications"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors relative"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 01-3.46 0" />
+            </svg>
+            {unreadCount > 0 && (
+              <span className="pulse-dot absolute top-1 right-1 w-2 h-2 bg-status-negative-text rounded-full" />
+            )}
+          </button>
+          {notifOpen && (
+            <div className="absolute right-0 mt-2 w-80 bg-white border border-surface-container-highest rounded-lg shadow-card z-50 max-h-96 overflow-y-auto">
+              <div className="p-4 border-b border-surface-container-highest">
+                <p className="text-sm font-medium text-on-surface">Notifications</p>
+              </div>
+              {notifications.length === 0 ? (
+                <p className="text-sm text-on-surface-variant p-4">No notifications yet.</p>
+              ) : (
+                <div className="divide-y divide-surface-container-highest">
+                  {notifications.map((n) => (
+                    <button
+                      key={n.id}
+                      onClick={() => markRead(n.id)}
+                      className={`w-full text-left p-4 text-sm hover:bg-surface-container-low transition-colors ${
+                        n.isRead ? "text-on-surface-variant" : "text-on-surface font-medium"
+                      }`}
+                    >
+                      <p>{n.message}</p>
+                      <p className="text-xs text-on-surface-variant mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div ref={profileRef} className="relative">
+          <button onClick={() => setProfileOpen((v) => !v)} className="flex items-center gap-2">
+            <span className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-sm text-on-surface">
+              {user?.name?.[0] ?? "U"}
+            </span>
+            <span className="hidden md:inline text-sm text-on-surface">Profile</span>
+          </button>
+          {profileOpen && (
+            <div className="absolute right-0 mt-2 w-64 bg-white border border-surface-container-highest rounded-lg shadow-card p-4 z-50">
+              <p className="text-sm font-medium text-on-surface">{user?.name ?? "Unknown"}</p>
+              <p className="text-xs text-on-surface-variant mt-1">{user?.email ?? ""}</p>
+              <p className="text-xs text-on-surface-variant mt-1">Role: {user?.role ?? ""}</p>
+              <div className="mt-3 pt-3 border-t border-surface-container-highest">
+                <Link
+                  href="/sign-in"
+                  onClick={() => {
+                    localStorage.removeItem("opsflow_token");
+                    localStorage.removeItem("opsflow_user");
+                    document.cookie = "opsflow_token=; path=/; max-age=0";
+                  }}
+                  className="text-sm text-status-negative-text hover:underline"
+                >
+                  Sign out
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
