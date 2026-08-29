@@ -10,22 +10,28 @@ export function AddUserModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onAdd: (data: { name: string; department: string; role: Role }) => void;
+  onAdd: (data: { name: string; email: string; department: string; role: Role }) => void;
 }) {
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [department, setDepartment] = useState("");
   const [role, setRole] = useState<Role>("Staff");
+  const [error, setError] = useState<string | null>(null);
 
   if (!open) return null;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name) return;
-    onAdd({ name, department, role });
+    setError(null);
+    if (!name || !email) {
+      setError("Name and email are required");
+      return;
+    }
+    onAdd({ name, email, department, role });
     setName("");
+    setEmail("");
     setDepartment("");
     setRole("Staff");
-    onClose();
   }
 
   return (
@@ -36,6 +42,12 @@ export function AddUserModal({
           New users are created with Pending status until they activate their account.
         </p>
 
+        {error && (
+          <div className="mb-4 rounded-lg bg-status-negative-bg text-status-negative-text px-4 py-3 text-sm">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-on-surface mb-1">Name</label>
@@ -44,6 +56,17 @@ export function AddUserModal({
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
+              className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm focus:border-gold focus:ring-gold"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-on-surface mb-1">Email</label>
+            <input
+              type="email"
+              required
+              placeholder="their.email@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm focus:border-gold focus:ring-gold"
             />
           </div>
