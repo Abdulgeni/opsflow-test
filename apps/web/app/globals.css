@@ -26,47 +26,63 @@
   --font-serif: "Playfair Display", serif;
   --font-sans: "Inter", sans-serif;
 }
+
+/* ── Cursor ────────────────────────────────────────────── */
 button:not(:disabled),
 a,
 [role="button"] {
   cursor: pointer;
 }
-
 button:disabled {
   cursor: not-allowed;
 }
-/* Smooth global transitions for a more premium feel */
+
+/* ── Global smooth transitions ────────────────────────────── */
 * {
   transition-property: color, background-color, border-color, box-shadow, transform, opacity;
   transition-duration: 150ms;
   transition-timing-function: ease;
 }
 
-/* Subtle lift on interactive cards */
-.hover-lift {
-  transition: transform 200ms ease, box-shadow 200ms ease;
-}
-.hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-}
-
-/* Elegant focus ring matching the gold accent, replacing the default blue */
+/* ── Elegant gold focus ring, replacing default blue ──────── */
 *:focus-visible {
   outline: 2px solid #C5A059;
   outline-offset: 2px;
 }
 
-/* Smooth page-load fade-in for the main content area */
+/* ── Page-load fade-in ─────────────────────────────────────── */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 main {
-  animation: fadeIn 300ms ease-out;
+  animation: fadeIn 350ms ease-out;
 }
 
-/* Custom scrollbar matching the design system */
+/* ── Staggered fade-in for list rows and cards ────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-in {
+  animation: fadeInUp 300ms ease-out both;
+}
+
+/* ── Hover lift for interactive cards ─────────────────────── */
+.hover-lift {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Subtle scale on click for buttons ────────────────────── */
+button:active {
+  transform: scale(0.97);
+}
+
+/* ── Custom gold-accented scrollbar ───────────────────────── */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -80,4 +96,50 @@ main {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #C5A059;
+}
+
+/* ── Skeleton shimmer instead of flat pulse ───────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f4f3f3 25%, #eeeeee 50%, #f4f3f3 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* ── Badge pulse for unread notification dot ──────────────── */
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.15); }
+}
+.pulse-dot {
+  animation: pulseDot 1.8s ease-in-out infinite;
+}
+
+/* ── Responsive: collapse the sidebar to icons-only on narrower screens ── */
+@media (max-width: 1024px) {
+  .sidebar-label {
+    display: none;
+  }
+  .sidebar-container {
+    width: 72px !important;
+  }
+}
+
+/* ── Responsive: stack grids on small screens ─────────────── */
+@media (max-width: 768px) {
+  .responsive-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .responsive-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-grid-4 {
+    grid-template-columns: 1fr !important;
+  }
 }
