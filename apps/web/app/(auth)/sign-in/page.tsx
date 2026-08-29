@@ -29,8 +29,9 @@ export default function SignInPage() {
 
       const data = await res.json();
       localStorage.setItem("opsflow_token", data.accessToken);
-      localStorage.setItem("opsflow_user", JSON.stringify(data.user));
-      router.push("/dashboard");
+localStorage.setItem("opsflow_user", JSON.stringify(data.user));
+document.cookie = `opsflow_token=${data.accessToken}; path=/; max-age=28800`;
+router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-in failed");
     } finally {
