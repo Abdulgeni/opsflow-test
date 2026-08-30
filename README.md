@@ -2,7 +2,7 @@
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0B0A08,50:1C1815,100:C9A24B&height=260&section=header&text=OpsFlow&fontSize=68&fontColor=F5F1E8&animation=fadeIn&fontAlignY=38&desc=Institutional%20Operations%20Platform%20%C2%B7%20GoldenAge%20Technology%20PLC&descAlignY=58&descColor=E8D5A8&descSize=18" width="100%"/>
 
-<img src="https://readme-typing-svg.demolab.com?font=Playfair+Display&weight=600&size=22&duration=3200&pause=1000&color=C9A24B&center=true&vCenter=true&width=820&lines=A+full-stack+institutional+operations+platform;From+a+formal+SRS+to+a+live%2C+tested+production+system;Real+auth.+Real+RBAC.+Real-time+by+WebSocket.;Designed+and+engineered+by+Abdulgeni+Abdulaziz" alt="Typing SVG" />
+<img src="https://readme-typing-svg.demolab.com?font=Playfair+Display&weight=600&size=22&duration=3200&pause=1000&color=C9A24B&center=true&vCenter=true&width=820&lines=A+full-stack+institutional+operations+platform;From+a+formal+SRS+to+a+live%2C+tested+production+system;Real+auth.+Real+RBAC.+Real-time+by+WebSocket.;Designed+and+engineered+by+Golden+Age+Internship+Group" alt="Typing SVG" />
 
 <br/>
 
@@ -90,13 +90,16 @@ A collapsible mobile navigation drawer, horizontally scrollable data tables, and
 ## ◆ Architecture
 
 OpsFlow is a **Turborepo monorepo** with a strict separation between presentation and business logic:
+
+```
 opsflow/
 ├── apps/
-│ ├── web/ Next.js 16 (App Router) — the entire user interface
-│ └── api/ NestJS — REST API, WebSocket gateway, scheduled jobs
+│   ├── web/                Next.js 16 (App Router) — the entire user interface
+│   └── api/                NestJS — REST API, WebSocket gateway, scheduled jobs
 ├── prisma/
-│ └── schema.prisma Single shared source of truth for the data model
-└── .github/workflows/ Continuous integration pipeline
+│   └── schema.prisma       Single shared source of truth for the data model
+└── .github/workflows/      Continuous integration pipeline
+```
 
 **Why this shape** — frontend and backend are deliberately independent, deployable services communicating over a versioned REST API and WebSocket connection, never sharing runtime state, never trusting each other's validation. A request is only as authorized as the JWT and role it carries; the interface merely reflects what the API permits.
 
@@ -137,69 +140,126 @@ Access control is enforced **exclusively at the server**, never assumed from the
 
 Workflow comments are delivered over a persistent WebSocket connection, never polling:
 
-1.Client joins a private "room" scoped to the workflow being viewed
-2.A new comment is persisted to PostgreSQL
-3.The comment is broadcast ONLY to clients currently subscribed
-  to that workflow's room
-4.Every open tab viewing that workflow — including the sender's
-  own — updates instantly, with zero page refresh
-Fill in DATABASE_URL, JWT_SECRET, and NEXT_PUBLIC_API_URL as appropriate for your environment.
-bash
-  docker run --name opsflow-db \
+```
+1.  Client joins a private "room" scoped to the workflow being viewed
+2.  A new comment is persisted to PostgreSQL
+3.  The comment is broadcast ONLY to clients currently subscribed
+    to that workflow's room
+4.  Every open tab viewing that workflow — including the sender's
+    own — updates instantly, with zero page refresh
+```
+
+<br/>
+
+## ◆ Getting Started
+
+### Prerequisites
+`Node.js 22+`  ·  `Docker` (for local PostgreSQL, or any reachable PostgreSQL 16 instance)
+
+### Installation
+
+```bash
+git clone https://github.com/Abdulgeni/opsflow-test.git
+cd opsflow-test
+npm install
+```
+
+### Environment Setup
+
+```bash
+cp .env.example apps/api/.env
+cp .env.example apps/web/.env.local
+```
+
+Fill in `DATABASE_URL`, `JWT_SECRET`, and `NEXT_PUBLIC_API_URL` as appropriate for your environment.
+
+### Database
+
+```bash
+docker run --name opsflow-db \
   -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=opsflow \
   -p 5432:5432 -d postgres:16
 
 npx prisma generate --schema=prisma/schema.prisma
 npx prisma migrate dev --schema=prisma/schema.prisma
-Seed Data
-  bash
+```
+
+### Seed Data
+
+```bash
 cd apps/api
 npx ts-node src/prisma-seed.ts
-Creates a starter administrator account: admin@goldenage.com / password123
+```
 
-Run
-bash
+Creates a starter administrator account: `admin@goldenage.com` / `password123`
+
+### Run
+
+```bash
 # from the repo root
 npm run dev
+```
+
 <div align="center">
-Service	URL
-Frontend	http://localhost:3000
-Backend	http://localhost:4000
+
+| Service | URL |
+|:---|:---|
+| Frontend | `http://localhost:3000` |
+| Backend | `http://localhost:4000` |
+
 </div>
-◆ Testing
-bash
+
+<br/>
+
+## ◆ Testing
+
+```bash
 cd apps/api
 npm test
+```
+
 Tests cover service-layer create/read/update flows and the business logic underpinning maintenance-status synchronization, run against a real database connection to validate genuine behavior rather than mocked assumptions.
 
+<br/>
 
-◆ Continuous Integration
-Every push and pull request against main automatically:
+## ◆ Continuous Integration
 
+Every push and pull request against `main` automatically:
+
+```
 1.  Provisions a fresh, isolated PostgreSQL instance
 2.  Installs dependencies and generates the Prisma client
 3.  Applies all database migrations
 4.  Typechecks both applications
 5.  Runs the full test suite
 6.  Confirms the frontend builds for production
+```
+
 A merge is only possible once every step passes.
 
+<br/>
 
-◆ Roadmap
-□ Cloud file storage for document uploads — Cloudflare R2 (architecture already scaffolded)
-□ Expanded automated test coverage across all modules
-□ Workflow template library with reusable stage configurations
-□ Business-day–aware scheduling refinements
+## ◆ Roadmap
+
+- [ ] Cloud file storage for document uploads — Cloudflare R2 (architecture already scaffolded)
+- [ ] Expanded automated test coverage across all modules
+- [ ] Workflow template library with reusable stage configurations
+- [ ] Business-day–aware scheduling refinements
+
+<br/>
 
 <div align="center">
-◆ Credits
-Designed and built by Abdulgeni Abdulaziz
+
+## ◆ Credits
+
+**Designed and built by Internship Group**
 GoldenAge Technology PLC
 
 <sub>OpsFlow — Management Suite</sub>
 
+<br/><br/>
 
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:C9A24B,50:1C1815,100:0B0A08&height=140&section=footer" width="100%"/>
 
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:C9A24B,50:1C1815,100:0B0A08&height=140&section=footer" width="100%"/></div> ``
+</div>
