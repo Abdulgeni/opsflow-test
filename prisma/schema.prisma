@@ -12,6 +12,7 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 enum Role {
   ADMIN
   MANAGER
@@ -70,6 +71,7 @@ model LoginActivity {
 
   @@map("login_activity")
 }
+
 enum PropertyStatus {
   AVAILABLE
   OCCUPIED
@@ -97,6 +99,7 @@ model Property {
   statusBeforeMaintenance PropertyStatus?
 
   maintenanceRequests MaintenanceRequest[]
+  occupancyRecords OccupancyRecord[]
 
   @@map("properties")
 }
@@ -112,6 +115,7 @@ model MaintenanceRequest {
 
   @@map("maintenance_requests")
 }
+
 enum ClientType {
   INDIVIDUAL
   ORGANIZATION
@@ -134,6 +138,7 @@ model Client {
   createdAt DateTime     @default(now())
 
   contactLogs ContactLog[]
+  occupancyRecords OccupancyRecord[]
 
   @@map("clients")
 }
@@ -156,11 +161,13 @@ model ContactLog {
 
   @@map("contact_logs")
 }
+
 model Document {
   id           String   @id @default(uuid())
   title        String
   category     String
-  linkedTo     String
+  linkedEntityType String   // "Property" | "Client"
+  linkedEntityId   String
   uploadedById String
   uploadedBy   User     @relation(fields: [uploadedById], references: [id])
   version      Int      @default(1)
@@ -181,12 +188,14 @@ model DocumentVersion {
 
   @@map("document_versions")
 }
+
 model WorkflowInstance {
   id               String   @id @default(uuid())
   title            String
   stages           Json
   currentStageIndex Int     @default(0)
-  linkedTo         String?
+  linkedEntityType String?  // "Property" | "Client"
+  linkedEntityId   String?
   createdAt        DateTime @default(now())
 
   transitions WorkflowTransition[]
@@ -220,6 +229,7 @@ model WorkflowComment {
 
   @@map("workflow_comments")
 }
+
 model ExecutiveNote {
   id        String   @id @default(uuid())
   linkedTo  String
@@ -230,6 +240,7 @@ model ExecutiveNote {
 
   @@map("executive_notes")
 }
+
 model ReportSnapshot {
   id             String   @id @default(uuid())
   completionRate Int
@@ -241,6 +252,7 @@ model ReportSnapshot {
 
   @@map("report_snapshots")
 }
+
 model Notification {
   id        String   @id @default(uuid())
   userId    String
@@ -250,4 +262,18 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@map("notifications")
+}
+
+// New model: OccupancyRecord
+model OccupancyRecord {
+  id         String    @id @default(uuid())
+  propertyId String
+  property   Property  @relation(fields: [propertyId], references: [id])
+  clientId   String
+  client     Client    @relation(fields: [clientId], references: [id])
+  startDate  DateTime  @default(now())
+  endDate    DateTime?
+  notes      String?
+
+  @@map("occupancy_records")
 }
