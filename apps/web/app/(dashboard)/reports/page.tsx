@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { OccupancyTable } from "@/components/reports/occupancy-table";
+import { useOccupancy } from "@/hooks/useAnalytics";
+import { isForbidden } from "@/lib/api/reports";
 
 function authHeaders(): HeadersInit {
   const token = typeof window !== "undefined" ? localStorage.getItem("opsflow_token") : null;
@@ -27,6 +30,7 @@ export default function ReportsPage() {
   const [history, setHistory] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const occupancy = useOccupancy();
 
   useEffect(() => {
     async function load() {
@@ -129,6 +133,24 @@ export default function ReportsPage() {
             Export CSV
           </button>
         </div>
+      </Card>
+
+      <Card title="Property Occupancy">
+        {occupancy.isPending ? (
+          <div className="h-24 bg-surface-container-low rounded animate-pulse" />
+        ) : occupancy.isError ? (
+          <p className="text-sm text-on-surface-variant py-8 text-center">
+            {isForbidden(occupancy.error)
+              ? "The occupancy breakdown is available to Admin and Manager roles only."
+              : "Failed to load the occupancy breakdown."}
+          </p>
+        ) : occupancy.data.length === 0 ? (
+          <p className="text-sm text-on-surface-variant py-8 text-center">
+            No properties on record yet.
+          </p>
+        ) : (
+          <OccupancyTable rows={occupancy.data} />
+        )}
       </Card>
     </div>
   );
