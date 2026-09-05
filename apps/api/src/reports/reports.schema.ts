@@ -7,9 +7,16 @@ import { z } from "zod";
 export const OccupancyRowSchema = z.object({
   status: z.string(),
   count: z.number().int().nonnegative(),
+  percentage: z.number().min(0).max(100),
 });
 
-export const OccupancyResponseSchema = z.array(OccupancyRowSchema);
+// `total` rides along at the top level so the report can show it without the
+// client re-summing the rows, and so an empty database is distinguishable
+// from a breakdown that happens to be all zeroes.
+export const OccupancyResponseSchema = z.object({
+  total: z.number().int().nonnegative(),
+  breakdown: z.array(OccupancyRowSchema),
+});
 
 export type OccupancyRow = z.infer<typeof OccupancyRowSchema>;
 export type OccupancyResponse = z.infer<typeof OccupancyResponseSchema>;
