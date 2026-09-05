@@ -23,6 +23,13 @@ const columns = helper.columns([
     header: "Count",
     cell: (info) => <span className="text-sm text-on-surface tabular-nums">{info.getValue()}</span>,
   }),
+  helper.accessor("percentage", {
+    header: "Percentage",
+    // Whole percents come from the API, so this only has to add the sign.
+    cell: (info) => (
+      <span className="text-sm text-on-surface tabular-nums">{info.getValue()}%</span>
+    ),
+  }),
 ]);
 
 export function OccupancyTable({ rows }: { rows: OccupancyRow[] }) {
@@ -31,7 +38,7 @@ export function OccupancyTable({ rows }: { rows: OccupancyRow[] }) {
   return (
     <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
       <table className="w-full text-left border-collapse min-w-[320px]">
-        <caption className="sr-only">Property count by occupancy status</caption>
+        <caption className="sr-only">Property count and share by occupancy status</caption>
         <thead>
           {table.getHeaderGroups().map((group) => (
             <tr

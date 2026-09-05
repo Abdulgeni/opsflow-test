@@ -144,12 +144,20 @@ export default function ReportsPage() {
               ? "The occupancy breakdown is available to Admin and Manager roles only."
               : "Failed to load the occupancy breakdown."}
           </p>
-        ) : occupancy.data.length === 0 ? (
+        ) : occupancy.data.total === 0 ? (
           <p className="text-sm text-on-surface-variant py-8 text-center">
             No properties on record yet.
           </p>
         ) : (
-          <OccupancyTable rows={occupancy.data} />
+          <>
+            <OccupancyTable rows={occupancy.data.breakdown} />
+            <p className="mt-4 text-sm text-on-surface-variant">
+              Total Properties:{" "}
+              <span className="font-medium text-on-surface tabular-nums">
+                {occupancy.data.total}
+              </span>
+            </p>
+          </>
         )}
       </Card>
     </div>

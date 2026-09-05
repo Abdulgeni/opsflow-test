@@ -13,11 +13,16 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export const OccupancyRowSchema = z.object({
   status: z.string(),
   count: z.number().int().nonnegative(),
+  percentage: z.number().min(0).max(100),
 });
 
-export const OccupancyResponseSchema = z.array(OccupancyRowSchema);
+export const OccupancyResponseSchema = z.object({
+  total: z.number().int().nonnegative(),
+  breakdown: z.array(OccupancyRowSchema),
+});
 
 export type OccupancyRow = z.infer<typeof OccupancyRowSchema>;
+export type OccupancyResponse = z.infer<typeof OccupancyResponseSchema>;
 
 export class ApiError extends Error {
   constructor(
@@ -35,7 +40,7 @@ export function isForbidden(error: unknown): boolean {
   return error instanceof ApiError && error.status === 403;
 }
 
-export async function fetchOccupancy(): Promise<OccupancyRow[]> {
+export async function fetchOccupancy(): Promise<OccupancyResponse> {
   const res = await fetch(`${API_URL}/reports/properties/occupancy`, { headers: authHeaders() });
   if (!res.ok) {
     const body = await res.json().catch(() => null);
