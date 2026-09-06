@@ -13,6 +13,26 @@ export class WorkflowsController {
     return this.workflowsService.findAll();
   }
 
+  @Get("options/properties")
+  getAvailableProperties() {
+    return this.workflowsService.getAvailableProperties();
+  }
+
+  @Get("options/documents")
+  getAvailableDocuments() {
+    return this.workflowsService.getAvailableDocuments();
+  }
+
+  @Get("options/clients")
+  getAvailableClients() {
+    return this.workflowsService.getAvailableClients();
+  }
+
+  @Get("options/users")
+  getAvailableUsers() {
+    return this.workflowsService.getAvailableUsers();
+  }
+
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.workflowsService.findOne(id);

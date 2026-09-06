@@ -88,3 +88,10 @@ export async function addWorkflowComment(id: string, body: string) {
   if (!res.ok) throw new Error("Failed to add comment");
   return res.json();
 }
+
+export async function fetchLinkOptions(type: "property" | "document" | "client"): Promise<any[]> {
+  const endpoint = type === "property" ? "properties" : `${type}s`;
+  const res = await fetch(`${API_URL}/workflows/options/${endpoint}`, { headers: authHeaders() });
+  if (!res.ok) throw new Error(`Failed to fetch ${endpoint}`);
+  return res.json();
+}
