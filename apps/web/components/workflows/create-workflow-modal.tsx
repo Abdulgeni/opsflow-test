@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { fetchLinkOptions } from "@/lib/api/workflows";
 
 export function CreateWorkflowModal({
@@ -15,23 +16,20 @@ export function CreateWorkflowModal({
   const [title, setTitle] = useState("");
   const [linkedTo, setLinkedTo] = useState("");
   const [linkType, setLinkType] = useState<"property" | "document" | "client" | "">("");
-  const [linkOptions, setLinkOptions] = useState<any[]>([]);
-  const [optionsLoading, setOptionsLoading] = useState(false);
   const [stages, setStages] = useState<string[]>(["Submitted", "Manager Review", "Approved"]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const { data: linkOptions = [], isLoading: optionsLoading } = useQuery({
+    queryKey: ["linkOptions", linkType],
+    queryFn: () => fetchLinkOptions(linkType as "property" | "document" | "client"),
+    enabled: !!linkType,
+  });
+
   useEffect(() => {
     if (!linkType) {
-      setLinkOptions([]);
       setLinkedTo("");
-      return;
     }
-    setOptionsLoading(true);
-    fetchLinkOptions(linkType)
-      .then(setLinkOptions)
-      .catch(console.error)
-      .finally(() => setOptionsLoading(false));
   }, [linkType]);
 
   if (!open) return null;
