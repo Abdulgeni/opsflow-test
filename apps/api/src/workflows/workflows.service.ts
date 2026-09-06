@@ -5,11 +5,11 @@ import { NotificationsService } from "../notifications/notifications.service";
 
 @Injectable()
 export class WorkflowsService {
- constructor(
+  constructor(
     private prisma: PrismaService,
     private gateway: WorkflowsGateway,
     private notifications: NotificationsService
-  ) {}
+  ) { }
 
   async findAll() {
     return this.prisma.workflowInstance.findMany({
@@ -90,4 +90,22 @@ export class WorkflowsService {
 
     return comment;
   }
+
+  async getAvailableProperties() {
+    return this.prisma.property.findMany({ select: { id: true, name: true, type: true } });
+  }
+
+  async getAvailableDocuments() {
+    return this.prisma.document.findMany({ select: { id: true, title: true, category: true } });
+  }
+
+  async getAvailableClients() {
+    return this.prisma.client.findMany({ select: { id: true, name: true, type: true } });
+  }
+
+  async getAvailableUsers() {
+    return this.prisma.user.findMany({ select: { id: true, name: true, role: true } });
+  }
+
+
 }

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchLinkOptions } from "@/lib/api/workflows";
 
 export function CreateWorkflowModal({
   open,
@@ -13,9 +15,22 @@ export function CreateWorkflowModal({
 }) {
   const [title, setTitle] = useState("");
   const [linkedTo, setLinkedTo] = useState("");
+  const [linkType, setLinkType] = useState<"property" | "document" | "client" | "">("");
   const [stages, setStages] = useState<string[]>(["Submitted", "Manager Review", "Approved"]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const { data: linkOptions = [], isLoading: optionsLoading } = useQuery({
+    queryKey: ["linkOptions", linkType],
+    queryFn: () => fetchLinkOptions(linkType as "property" | "document" | "client"),
+    enabled: !!linkType,
+  });
+
+  useEffect(() => {
+    if (!linkType) {
+      setLinkedTo("");
+    }
+  }, [linkType]);
 
   if (!open) return null;
 
@@ -87,15 +102,41 @@ export function CreateWorkflowModal({
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-on-surface mb-1">Linked to (optional)</label>
-            <input
-              type="text"
-              placeholder="e.g. Alpha Towers or a client name"
-              value={linkedTo}
-              onChange={(e) => setLinkedTo(e.target.value)}
-              className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm focus:border-gold focus:ring-gold"
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-on-surface mb-1">Link type (optional)</label>
+              <select
+                value={linkType}
+                onChange={(e) => setLinkType(e.target.value as any)}
+                className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm focus:border-gold focus:ring-gold"
+              >
+                <option value="">None</option>
+                <option value="property">Property</option>
+                <option value="document">Document</option>
+                <option value="client">Client</option>
+              </select>
+            </div>
+
+            {linkType && (
+              <div>
+                <label className="block text-sm font-medium text-on-surface mb-1">
+                  Select {linkType}
+                </label>
+                <select
+                  value={linkedTo}
+                  onChange={(e) => setLinkedTo(e.target.value)}
+                  disabled={optionsLoading}
+                  className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm focus:border-gold focus:ring-gold disabled:opacity-50"
+                >
+                  <option value="">{optionsLoading ? "Loading..." : "Select one"}</option>
+                  {linkOptions.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.name || opt.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div>
