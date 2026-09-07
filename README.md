@@ -67,7 +67,7 @@ Live KPIs aggregated across every module, with historical trend tracking capture
 <td width="50%" valign="top">
 
 ### 🎯 Executive Decision Support
-A calm, single-glance summary built for leadership — automatically flags workflows stalled beyond five business days and properties under maintenance beyond ten calendar days, with a running decision log.
+A calm, single-glance summary built for leadership — automatically flags workflows stalled beyond five business days and properties under maintenance beyond ten calendar days, with a running decision log
 
 ### 👥 User & Access Management
 Four-tier role-based access control — **Admin · Manager · Staff · Executive** — enforced at the API layer via server-side guards, never trusted to the frontend. Includes a secure, single-use activation flow in place of open self-registration.
