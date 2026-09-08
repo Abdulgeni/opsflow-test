@@ -12,9 +12,16 @@ export class WorkflowsService {
   ) { }
 
   async findAll() {
-    return this.prisma.workflowInstance.findMany({
+    const workflows = await this.prisma.workflowInstance.findMany({
       orderBy: { createdAt: "desc" },
     });
+
+    return Promise.all(
+      workflows.map(async (workflow) => ({
+        ...workflow,
+        linkedEntityName: await this.resolveEntityName(workflow.linkedEntityType, workflow.linkedEntityId),
+      }))
+    );
   }
 
   async findOne(id: string) {
@@ -26,7 +33,28 @@ export class WorkflowsService {
       },
     });
     if (!workflow) throw new NotFoundException("Workflow not found");
-    return workflow;
+
+    const linkedEntityName = await this.resolveEntityName(workflow.linkedEntityType, workflow.linkedEntityId);
+
+    return { ...workflow, linkedEntityName };
+  }
+
+  private async resolveEntityName(type: string | null, id: string | null): Promise<string | null> {
+    if (!type || !id) return null;
+    
+    if (type === "Property") {
+      const property = await this.prisma.property.findUnique({ where: { id }, select: { name: true } });
+      return property?.name ?? null;
+    }
+    if (type === "Client") {
+      const client = await this.prisma.client.findUnique({ where: { id }, select: { name: true } });
+      return client?.name ?? null;
+    }
+    if (type === "Document") {
+      const document = await this.prisma.document.findUnique({ where: { id }, select: { title: true } });
+      return document?.title ?? null;
+    }
+    return null;
   }
 
   async create(data: { title: string; stages: string[]; linkedEntityType?: string; linkedEntityId?: string }) {

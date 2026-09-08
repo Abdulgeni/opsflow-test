@@ -21,6 +21,24 @@ export interface ApiContactLog {
   createdBy: { name: string };
 }
 
+export interface ApiDocument {
+  id: string;
+  title: string;
+  category: string;
+  linkedEntityType: string;
+  linkedEntityId: string;
+  version: number;
+  createdAt: string;
+}
+
+export interface ApiWorkflow {
+  id: string;
+  title: string;
+  stages: string[];
+  currentStageIndex: number;
+  createdAt: string;
+}
+
 export async function fetchClients(params: { status?: string; type?: string; search?: string }): Promise<ApiClient[]> {
   const query = new URLSearchParams(
     Object.entries(params).filter(([, v]) => v) as [string, string][]
@@ -30,7 +48,11 @@ export async function fetchClients(params: { status?: string; type?: string; sea
   return res.json();
 }
 
-export async function fetchClient(id: string): Promise<ApiClient & { contactLogs: ApiContactLog[] }> {
+export async function fetchClient(id: string): Promise<ApiClient & { 
+  contactLogs: ApiContactLog[];
+  linkedDocuments: ApiDocument[];
+  linkedWorkflows: ApiWorkflow[];
+}> {
   const res = await fetch(`${API_URL}/clients/${id}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Failed to fetch client");
   return res.json();

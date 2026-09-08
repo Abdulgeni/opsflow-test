@@ -11,6 +11,7 @@ export interface ApiDocument {
   category: string;
   linkedEntityType: string;
   linkedEntityId: string;
+  linkedEntityName?: string | null;
   version: number;
   createdAt: string;
   uploadedBy: { name: string };

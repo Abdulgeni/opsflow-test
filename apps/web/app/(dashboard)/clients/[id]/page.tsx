@@ -11,19 +11,23 @@ import { trackRecentView } from "@/lib/recent";
 
 export default function ClientDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [client, setClient] = useState<(ApiClient & { contactLogs: ApiContactLog[] }) | null>(null);
+  const [client, setClient] = useState<(ApiClient & { 
+    contactLogs: ApiContactLog[];
+    linkedDocuments: any[];
+    linkedWorkflows: any[];
+  }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-useEffect(() => {
-  fetchClient(id)
-    .then((data) => {
-      setClient(data);
-      trackRecentView(data.name, `/clients/${id}`);
-    })
-    .catch((err) => setError(err instanceof Error ? err.message : "Failed to load client"))
-    .finally(() => setLoading(false));
-}, [id]);
+  useEffect(() => {
+    fetchClient(id)
+      .then((data) => {
+        setClient(data);
+        trackRecentView(data.name, `/clients/${id}`);
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load client"))
+      .finally(() => setLoading(false));
+  }, [id]);
 
   if (loading) return <div className="h-40 bg-surface-container-low rounded animate-pulse" />;
   if (error || !client) return <div className="text-sm text-status-negative-text">{error ?? "Client not found."}</div>;
@@ -74,7 +78,17 @@ useEffect(() => {
             <p className="text-sm text-on-surface-variant">No linked properties.</p>
           </Card>
           <Card title="Linked Documents">
-            <p className="text-sm text-on-surface-variant">No linked documents.</p>
+            {client.linkedDocuments?.length ? (
+              <div className="space-y-2">
+                {client.linkedDocuments.map((d: any) => (
+                  <Link key={d.id} href={`/documents/${d.id}`} className="block text-sm text-primary hover:text-gold transition-colors">
+                    {d.title}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-on-surface-variant">No linked documents.</p>
+            )}
           </Card>
         </div>
         <Card title="Activity">

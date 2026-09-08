@@ -40,7 +40,8 @@ export async function fetchWorkflow(id: string): Promise<ApiWorkflow & { transit
   if (!res.ok) throw new Error("Failed to fetch workflow");
   return res.json();
 }
-export async function createWorkflow(data: { title: string; stages: string[]; linkedTo?: string }) {
+
+export async function createWorkflow(data: { title: string; stages: string[]; linkedEntityType?: string; linkedEntityId?: string }) {
   const res = await fetch(`${API_URL}/workflows`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },

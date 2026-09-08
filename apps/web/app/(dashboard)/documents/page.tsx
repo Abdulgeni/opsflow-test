@@ -145,7 +145,7 @@ export default function DocumentsPage() {
                       </Link>
                     </td>
                     <td className="py-4 px-2 text-sm text-on-surface-variant">{d.category}</td>
-                    <td className="py-4 px-2 text-sm text-on-surface-variant">{d.linkedEntityType}</td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">{d.linkedEntityName ?? d.linkedEntityType}</td>
                     <td className="py-4 px-2 text-sm text-on-surface-variant">{d.uploadedBy.name}</td>
                     <td className="py-4 px-2 text-sm text-on-surface-variant">v{d.version}</td>
                     <td className="py-4 px-2 text-sm text-on-surface-variant">{new Date(d.createdAt).toLocaleDateString()}</td>

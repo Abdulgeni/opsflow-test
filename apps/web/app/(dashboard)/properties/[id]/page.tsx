@@ -11,11 +11,15 @@ import { trackRecentView } from "@/lib/recent";
 
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [property, setProperty] = useState<(ApiProperty & { maintenanceRequests: ApiMaintenanceRequest[] }) | null>(null);
+  const [property, setProperty] = useState<(ApiProperty & { 
+    maintenanceRequests: ApiMaintenanceRequest[];
+    linkedDocuments: any[];
+    linkedWorkflows: any[];
+  }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
- useEffect(() => {
+  useEffect(() => {
     fetchProperty(id)
       .then((data) => {
         setProperty(data);
@@ -78,7 +82,17 @@ export default function PropertyDetailPage() {
             <p className="text-sm text-on-surface-variant">No linked clients.</p>
           </Card>
           <Card title="Linked Documents">
-            <p className="text-sm text-on-surface-variant">No linked documents.</p>
+            {property.linkedDocuments?.length ? (
+              <div className="space-y-2">
+                {property.linkedDocuments.map((d: any) => (
+                  <Link key={d.id} href={`/documents/${d.id}`} className="block text-sm text-primary hover:text-gold transition-colors">
+                    {d.title}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-on-surface-variant">No linked documents.</p>
+            )}
           </Card>
         </div>
 

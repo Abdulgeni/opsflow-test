@@ -23,10 +23,17 @@ export class PropertiesService {
       where: { id },
       include: {
         maintenanceRequests: { orderBy: { createdAt: "desc" } },
+        occupancyRecords: { include: { client: true }, orderBy: { startDate: "desc" } },
       },
     });
     if (!property) throw new NotFoundException("Property not found");
-    return property;
+
+    const [documents, workflows] = await Promise.all([
+      this.prisma.document.findMany({ where: { linkedEntityType: "Property", linkedEntityId: id } }),
+      this.prisma.workflowInstance.findMany({ where: { linkedEntityType: "Property", linkedEntityId: id } }),
+    ]);
+
+    return { ...property, linkedDocuments: documents, linkedWorkflows: workflows };
   }
 
   async create(data: { name: string; address: string; type: string; size?: number }) {

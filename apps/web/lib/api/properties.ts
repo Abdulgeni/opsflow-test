@@ -20,6 +20,24 @@ export interface ApiMaintenanceRequest {
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED";
 }
 
+export interface ApiDocument {
+  id: string;
+  title: string;
+  category: string;
+  linkedEntityType: string;
+  linkedEntityId: string;
+  version: number;
+  createdAt: string;
+}
+
+export interface ApiWorkflow {
+  id: string;
+  title: string;
+  stages: string[];
+  currentStageIndex: number;
+  createdAt: string;
+}
+
 export async function fetchProperties(params: { status?: string; type?: string; search?: string }): Promise<ApiProperty[]> {
   const query = new URLSearchParams(
     Object.entries(params).filter(([, v]) => v) as [string, string][]
@@ -29,7 +47,11 @@ export async function fetchProperties(params: { status?: string; type?: string; 
   return res.json();
 }
 
-export async function fetchProperty(id: string): Promise<ApiProperty & { maintenanceRequests: ApiMaintenanceRequest[] }> {
+export async function fetchProperty(id: string): Promise<ApiProperty & { 
+  maintenanceRequests: ApiMaintenanceRequest[];
+  linkedDocuments: ApiDocument[];
+  linkedWorkflows: ApiWorkflow[];
+}> {
   const res = await fetch(`${API_URL}/properties/${id}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Failed to fetch property");
   return res.json();

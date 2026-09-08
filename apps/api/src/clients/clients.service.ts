@@ -33,7 +33,13 @@ export class ClientsService {
       },
     });
     if (!client) throw new NotFoundException("Client not found");
-    return client;
+
+    const [documents, workflows] = await Promise.all([
+      this.prisma.document.findMany({ where: { linkedEntityType: "Client", linkedEntityId: id } }),
+      this.prisma.workflowInstance.findMany({ where: { linkedEntityType: "Client", linkedEntityId: id } }),
+    ]);
+
+    return { ...client, linkedDocuments: documents, linkedWorkflows: workflows };
   }
 
   async create(data: { name: string; type: "INDIVIDUAL" | "ORGANIZATION"; email: string; phone?: string }) {

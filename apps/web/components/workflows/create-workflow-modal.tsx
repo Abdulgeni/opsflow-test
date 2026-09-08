@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchLinkOptions } from "@/lib/api/workflows";
+import { EntityPicker } from "@/components/shared/entity-picker";
 
 export function CreateWorkflowModal({
   open,
@@ -11,26 +12,14 @@ export function CreateWorkflowModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onCreate: (data: { title: string; stages: string[]; linkedTo?: string }) => Promise<void>;
+  onCreate: (data: { title: string; stages: string[]; linkedEntityType?: string; linkedEntityId?: string }) => Promise<void>;
 }) {
   const [title, setTitle] = useState("");
-  const [linkedTo, setLinkedTo] = useState("");
-  const [linkType, setLinkType] = useState<"property" | "document" | "client" | "">("");
+  const [linkedEntityType, setLinkedEntityType] = useState("");
+  const [linkedEntityId, setLinkedEntityId] = useState("");
   const [stages, setStages] = useState<string[]>(["Submitted", "Manager Review", "Approved"]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const { data: linkOptions = [], isLoading: optionsLoading } = useQuery({
-    queryKey: ["linkOptions", linkType],
-    queryFn: () => fetchLinkOptions(linkType as "property" | "document" | "client"),
-    enabled: !!linkType,
-  });
-
-  useEffect(() => {
-    if (!linkType) {
-      setLinkedTo("");
-    }
-  }, [linkType]);
 
   if (!open) return null;
 
@@ -63,9 +52,15 @@ export function CreateWorkflowModal({
 
     setLoading(true);
     try {
-      await onCreate({ title: title.trim(), stages: cleanStages, linkedTo: linkedTo.trim() || undefined });
+      await onCreate({ 
+        title: title.trim(), 
+        stages: cleanStages, 
+        linkedEntityType: linkedEntityType || undefined, 
+        linkedEntityId: linkedEntityId || undefined 
+      });
       setTitle("");
-      setLinkedTo("");
+      setLinkedEntityType("");
+      setLinkedEntityId("");
       setStages(["Submitted", "Manager Review", "Approved"]);
       onClose();
     } catch (err) {
@@ -102,41 +97,13 @@ export function CreateWorkflowModal({
             />
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-on-surface mb-1">Link type (optional)</label>
-              <select
-                value={linkType}
-                onChange={(e) => setLinkType(e.target.value as any)}
-                className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm focus:border-gold focus:ring-gold"
-              >
-                <option value="">None</option>
-                <option value="property">Property</option>
-                <option value="document">Document</option>
-                <option value="client">Client</option>
-              </select>
-            </div>
-
-            {linkType && (
-              <div>
-                <label className="block text-sm font-medium text-on-surface mb-1">
-                  Select {linkType}
-                </label>
-                <select
-                  value={linkedTo}
-                  onChange={(e) => setLinkedTo(e.target.value)}
-                  disabled={optionsLoading}
-                  className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm focus:border-gold focus:ring-gold disabled:opacity-50"
-                >
-                  <option value="">{optionsLoading ? "Loading..." : "Select one"}</option>
-                  {linkOptions.map((opt) => (
-                    <option key={opt.id} value={opt.id}>
-                      {opt.name || opt.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+          <div>
+            <label className="block text-sm font-medium text-on-surface mb-1">Linked to (optional)</label>
+            <EntityPicker
+              entityType={linkedEntityType}
+              entityId={linkedEntityId}
+              onChange={(type, id) => { setLinkedEntityType(type); setLinkedEntityId(id); }}
+            />
           </div>
 
           <div>

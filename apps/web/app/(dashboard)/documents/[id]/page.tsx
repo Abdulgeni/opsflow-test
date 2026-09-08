@@ -38,7 +38,7 @@ export default function DocumentDetailPage() {
           <h1 className="font-serif text-3xl text-primary">{doc.title}</h1>
           <div className="flex items-center gap-2 mt-2">
             <span className="text-xs bg-surface-container-low px-2.5 py-1 rounded-full text-on-surface-variant">{doc.category}</span>
-            <span className="text-xs bg-surface-container-low px-2.5 py-1 rounded-full text-on-surface-variant">{doc.linkedEntityType}</span>
+            <span className="text-xs bg-surface-container-low px-2.5 py-1 rounded-full text-on-surface-variant">{doc.linkedEntityName ?? doc.linkedEntityType}</span>
           </div>
           <p className="text-sm text-on-surface-variant mt-2">Uploaded by: {doc.uploadedBy.name}</p>
         </div>

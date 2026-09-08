@@ -7,7 +7,7 @@ export class DocumentsService {
 
   async findAll(params: { category?: string; linkedEntityId?: string; search?: string }) {
     const { category, linkedEntityId, search } = params;
-    return this.prisma.document.findMany({
+    const documents = await this.prisma.document.findMany({
       where: {
         ...(category && { category }),
         ...(linkedEntityId && { linkedEntityId }),
@@ -16,6 +16,13 @@ export class DocumentsService {
       include: { uploadedBy: { select: { name: true } } },
       orderBy: { createdAt: "desc" },
     });
+
+    return Promise.all(
+      documents.map(async (doc) => ({
+        ...doc,
+        linkedEntityName: await this.resolveEntityName(doc.linkedEntityType, doc.linkedEntityId),
+      }))
+    );
   }
 
   async findOne(id: string) {
@@ -27,7 +34,22 @@ export class DocumentsService {
       },
     });
     if (!document) throw new NotFoundException("Document not found");
-    return document;
+
+    const linkedEntityName = await this.resolveEntityName(document.linkedEntityType, document.linkedEntityId);
+
+    return { ...document, linkedEntityName };
+  }
+
+  private async resolveEntityName(type: string, id: string): Promise<string | null> {
+    if (type === "Property") {
+      const property = await this.prisma.property.findUnique({ where: { id }, select: { name: true } });
+      return property?.name ?? null;
+    }
+    if (type === "Client") {
+      const client = await this.prisma.client.findUnique({ where: { id }, select: { name: true } });
+      return client?.name ?? null;
+    }
+    return null;
   }
 
   async create(data: { title: string; category: string; linkedEntityType: string; linkedEntityId: string; uploadedById: string }) {
