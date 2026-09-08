@@ -11,10 +11,10 @@ export class DocumentsController {
   @Get()
   findAll(
     @Query("category") category?: string,
-    @Query("linkedTo") linkedTo?: string,
+    @Query("linkedEntityId") linkedEntityId?: string,
     @Query("search") search?: string
   ) {
-    return this.documentsService.findAll({ category, linkedTo, search });
+    return this.documentsService.findAll({ category, linkedEntityId, search });
   }
 
   @Get(":id")
@@ -26,7 +26,7 @@ export class DocumentsController {
   @Roles("ADMIN", "MANAGER")
   create(
     @Req() req: any,
-    @Body() data: { title: string; category: string; linkedTo: string }
+    @Body() data: { title: string; category: string; linkedEntityType: string; linkedEntityId: string }
   ) {
     return this.documentsService.create({ ...data, uploadedById: req.user.id });
   }

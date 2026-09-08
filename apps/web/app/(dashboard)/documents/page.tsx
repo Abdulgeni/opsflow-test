@@ -15,7 +15,7 @@ export default function DocumentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
-  const [linkedTo, setLinkedTo] = useState("");
+  const [linkedEntityId, setLinkedEntityId] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const { show } = useToast();
 
@@ -23,7 +23,7 @@ export default function DocumentsPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchDocuments({ search, category, linkedTo });
+      const data = await fetchDocuments({ search, category, linkedEntityId });
       setDocuments(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load documents");
@@ -35,12 +35,17 @@ export default function DocumentsPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, category, linkedTo]);
+  }, [search, category, linkedEntityId]);
 
-  const linkedToOptions = Array.from(new Set(documents.map((d) => d.linkedTo)));
+  const linkedEntityOptions = Array.from(new Set(documents.map((d) => d.linkedEntityType)));
 
-  async function handleUpload(data: { title: string; category: string; linkedTo: string }) {
-    await createDocument(data);
+  async function handleUpload(data: { title: string; category: string; linkedEntityType: string; linkedEntityId: string; file: File | null }) {
+    const newDoc = await createDocument({ 
+      title: data.title, 
+      category: data.category, 
+      linkedEntityType: data.linkedEntityType, 
+      linkedEntityId: data.linkedEntityId 
+    });
     await load();
     show("Document uploaded successfully");
   }
@@ -83,12 +88,12 @@ export default function DocumentsPage() {
             ))}
           </select>
           <select
-            value={linkedTo}
-            onChange={(e) => setLinkedTo(e.target.value)}
+            value={linkedEntityId}
+            onChange={(e) => setLinkedEntityId(e.target.value)}
             className="rounded-lg border border-surface-container-highest px-3 py-2 text-sm"
           >
             <option value="">Linked to: All</option>
-            {linkedToOptions.map((l) => (
+            {linkedEntityOptions.map((l) => (
               <option key={l} value={l}>
                 {l}
               </option>
@@ -140,7 +145,7 @@ export default function DocumentsPage() {
                       </Link>
                     </td>
                     <td className="py-4 px-2 text-sm text-on-surface-variant">{d.category}</td>
-                    <td className="py-4 px-2 text-sm text-on-surface-variant">{d.linkedTo}</td>
+                    <td className="py-4 px-2 text-sm text-on-surface-variant">{d.linkedEntityType}</td>
                     <td className="py-4 px-2 text-sm text-on-surface-variant">{d.uploadedBy.name}</td>
                     <td className="py-4 px-2 text-sm text-on-surface-variant">v{d.version}</td>
                     <td className="py-4 px-2 text-sm text-on-surface-variant">{new Date(d.createdAt).toLocaleDateString()}</td>

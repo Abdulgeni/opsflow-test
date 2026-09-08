@@ -29,9 +29,15 @@ export class WorkflowsService {
     return workflow;
   }
 
-  async create(data: { title: string; stages: string[]; linkedTo?: string }) {
+  async create(data: { title: string; stages: string[]; linkedEntityType?: string; linkedEntityId?: string }) {
     return this.prisma.workflowInstance.create({
-      data: { title: data.title, stages: data.stages, linkedTo: data.linkedTo, currentStageIndex: 0 },
+      data: {
+        title: data.title,
+        stages: data.stages,
+        linkedEntityType: data.linkedEntityType,
+        linkedEntityId: data.linkedEntityId,
+        currentStageIndex: 0,
+      },
     });
   }
 
@@ -106,6 +112,4 @@ export class WorkflowsService {
   async getAvailableUsers() {
     return this.prisma.user.findMany({ select: { id: true, name: true, role: true } });
   }
-
-
 }

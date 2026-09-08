@@ -5,12 +5,12 @@ import { PrismaService } from "../prisma/prisma.service";
 export class DocumentsService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(params: { category?: string; linkedTo?: string; search?: string }) {
-    const { category, linkedTo, search } = params;
+  async findAll(params: { category?: string; linkedEntityId?: string; search?: string }) {
+    const { category, linkedEntityId, search } = params;
     return this.prisma.document.findMany({
       where: {
         ...(category && { category }),
-        ...(linkedTo && { linkedTo }),
+        ...(linkedEntityId && { linkedEntityId }),
         ...(search && { title: { contains: search, mode: "insensitive" } }),
       },
       include: { uploadedBy: { select: { name: true } } },
@@ -30,7 +30,7 @@ export class DocumentsService {
     return document;
   }
 
-  async create(data: { title: string; category: string; linkedTo: string; uploadedById: string }) {
+  async create(data: { title: string; category: string; linkedEntityType: string; linkedEntityId: string; uploadedById: string }) {
     const document = await this.prisma.document.create({
       data: { ...data, version: 1 },
     });

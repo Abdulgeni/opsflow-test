@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EntityPicker } from "@/components/shared/entity-picker";
 
 export function UploadDocumentModal({
   open,
@@ -9,21 +10,23 @@ export function UploadDocumentModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onUpload: (data: { title: string; category: string; linkedTo: string }) => void;
+  onUpload: (data: { title: string; category: string; linkedEntityType: string; linkedEntityId: string; file: File | null }) => Promise<void>;
 }) {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Legal");
-  const [linkedTo, setLinkedTo] = useState("");
+  const [linkedEntityType, setLinkedEntityType] = useState("");
+  const [linkedEntityId, setLinkedEntityId] = useState("");
 
   if (!open) return null;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!title || !linkedTo) return;
-    onUpload({ title, category, linkedTo });
+    if (!title || !linkedEntityId) return;
+    await onUpload({ title, category, linkedEntityType, linkedEntityId, file: null });
     setTitle("");
     setCategory("Legal");
-    setLinkedTo("");
+    setLinkedEntityType("");
+    setLinkedEntityId("");
     onClose();
   }
 
@@ -62,13 +65,10 @@ export function UploadDocumentModal({
           </div>
           <div>
             <label className="block text-sm font-medium text-on-surface mb-1">Linked to</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Sarah Chen or Alpha Towers"
-              value={linkedTo}
-              onChange={(e) => setLinkedTo(e.target.value)}
-              className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm focus:border-gold focus:ring-gold"
+            <EntityPicker
+              entityType={linkedEntityType}
+              entityId={linkedEntityId}
+              onChange={(type, id) => { setLinkedEntityType(type); setLinkedEntityId(id); }}
             />
           </div>
           <div>
@@ -77,9 +77,9 @@ export function UploadDocumentModal({
               type="file"
               className="block w-full text-sm text-on-surface-variant file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container-low file:text-sm"
             />
-           <p className="text-xs text-on-surface-variant mt-1">
-  Attach a file for your own reference. Document details (title, category, version) are saved and tracked in OpsFlow.
-</p>
+            <p className="text-xs text-on-surface-variant mt-1">
+              Attach a file for your own reference. Document details (title, category, version) are saved and tracked in OpsFlow.
+            </p>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">

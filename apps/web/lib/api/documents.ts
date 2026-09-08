@@ -9,7 +9,8 @@ export interface ApiDocument {
   id: string;
   title: string;
   category: string;
-  linkedTo: string;
+  linkedEntityType: string;
+  linkedEntityId: string;
   version: number;
   createdAt: string;
   uploadedBy: { name: string };
@@ -22,7 +23,7 @@ export interface ApiDocumentVersion {
   createdAt: string;
 }
 
-export async function fetchDocuments(params: { category?: string; linkedTo?: string; search?: string }): Promise<ApiDocument[]> {
+export async function fetchDocuments(params: { category?: string; linkedEntityId?: string; search?: string }): Promise<ApiDocument[]> {
   const query = new URLSearchParams(
     Object.entries(params).filter(([, v]) => v) as [string, string][]
   );
@@ -37,7 +38,7 @@ export async function fetchDocument(id: string): Promise<ApiDocument & { version
   return res.json();
 }
 
-export async function createDocument(data: { title: string; category: string; linkedTo: string }) {
+export async function createDocument(data: { title: string; category: string; linkedEntityType: string; linkedEntityId: string }) {
   const res = await fetch(`${API_URL}/documents`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },

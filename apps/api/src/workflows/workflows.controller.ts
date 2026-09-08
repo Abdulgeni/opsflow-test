@@ -40,7 +40,7 @@ export class WorkflowsController {
 
   @Post()
   @Roles("ADMIN")
-  create(@Body() data: { title: string; stages: string[]; linkedTo?: string }) {
+  create(@Body() data: { title: string; stages: string[]; linkedEntityType?: string; linkedEntityId?: string }) {
     return this.workflowsService.create(data);
   }
 
