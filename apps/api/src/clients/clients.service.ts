@@ -30,6 +30,10 @@ export class ClientsService {
           orderBy: { createdAt: "desc" },
           include: { createdBy: { select: { name: true } } },
         },
+        occupancyRecords: {
+          include: { property: true },
+          orderBy: { startDate: "desc" },
+        },
       },
     });
     if (!client) throw new NotFoundException("Client not found");

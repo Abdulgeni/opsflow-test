@@ -38,6 +38,11 @@ export interface ApiWorkflow {
   createdAt: string;
 }
 
+export interface ApiOccupancyRecord {
+  id: string;
+  client: { id: string; name: string };
+}
+
 export async function fetchProperties(params: { status?: string; type?: string; search?: string }): Promise<ApiProperty[]> {
   const query = new URLSearchParams(
     Object.entries(params).filter(([, v]) => v) as [string, string][]
@@ -47,10 +52,11 @@ export async function fetchProperties(params: { status?: string; type?: string; 
   return res.json();
 }
 
-export async function fetchProperty(id: string): Promise<ApiProperty & { 
+export async function fetchProperty(id: string): Promise<ApiProperty & {
   maintenanceRequests: ApiMaintenanceRequest[];
   linkedDocuments: ApiDocument[];
   linkedWorkflows: ApiWorkflow[];
+  occupancyRecords: ApiOccupancyRecord[];
 }> {
   const res = await fetch(`${API_URL}/properties/${id}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Failed to fetch property");
@@ -67,5 +73,24 @@ export async function createProperty(data: { name: string; address: string; type
     const body = await res.json().catch(() => null);
     throw new Error(body?.message ?? "Failed to create property");
   }
+  return res.json();
+}
+
+export async function linkClientToProperty(propertyId: string, clientId: string) {
+  const res = await fetch(`${API_URL}/properties/${propertyId}/link-client`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ clientId }),
+  });
+  if (!res.ok) throw new Error("Failed to link client");
+  return res.json();
+}
+
+export async function unlinkClientFromProperty(occupancyId: string) {
+  const res = await fetch(`${API_URL}/properties/occupancy/${occupancyId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to unlink client");
   return res.json();
 }

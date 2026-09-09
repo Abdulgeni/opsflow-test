@@ -35,6 +35,15 @@ export class PropertiesService {
 
     return { ...property, linkedDocuments: documents, linkedWorkflows: workflows };
   }
+  async linkClient(propertyId: string, clientId: string) {
+    return this.prisma.occupancyRecord.create({
+      data: { propertyId, clientId },
+    });
+  }
+
+  async unlinkClient(occupancyRecordId: string) {
+    return this.prisma.occupancyRecord.delete({ where: { id: occupancyRecordId } });
+  }
 
   async create(data: { name: string; address: string; type: string; size?: number }) {
     return this.prisma.property.create({

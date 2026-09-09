@@ -39,6 +39,11 @@ export interface ApiWorkflow {
   createdAt: string;
 }
 
+export interface ApiOccupancyRecord {
+  id: string;
+  property: { id: string; name: string };
+}
+
 export async function fetchClients(params: { status?: string; type?: string; search?: string }): Promise<ApiClient[]> {
   const query = new URLSearchParams(
     Object.entries(params).filter(([, v]) => v) as [string, string][]
@@ -48,10 +53,11 @@ export async function fetchClients(params: { status?: string; type?: string; sea
   return res.json();
 }
 
-export async function fetchClient(id: string): Promise<ApiClient & { 
+export async function fetchClient(id: string): Promise<ApiClient & {
   contactLogs: ApiContactLog[];
   linkedDocuments: ApiDocument[];
   linkedWorkflows: ApiWorkflow[];
+  occupancyRecords: ApiOccupancyRecord[];
 }> {
   const res = await fetch(`${API_URL}/clients/${id}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Failed to fetch client");

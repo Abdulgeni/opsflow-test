@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { fetchProperty, ApiProperty, ApiMaintenanceRequest } from "@/lib/api/properties";
+import { fetchProperty, ApiProperty, ApiMaintenanceRequest, linkClientToProperty, unlinkClientFromProperty } from "@/lib/api/properties";
 import { propertyStatusTone, maintenanceStatusTone, statusLabel } from "@/lib/status-tones";
 import { trackRecentView } from "@/lib/recent";
 
@@ -15,9 +15,12 @@ export default function PropertyDetailPage() {
     maintenanceRequests: ApiMaintenanceRequest[];
     linkedDocuments: any[];
     linkedWorkflows: any[];
+    occupancyRecords: any[];
   }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [allClients, setAllClients] = useState<{ id: string; name: string }[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState("");
 
   useEffect(() => {
     fetchProperty(id)
@@ -28,6 +31,29 @@ export default function PropertyDetailPage() {
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load property"))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("opsflow_token")}` },
+    })
+      .then((r) => r.json())
+      .then(setAllClients)
+      .catch(() => setAllClients([]));
+  }, []);
+
+  async function handleLinkClient() {
+    if (!selectedClientId) return;
+    await linkClientToProperty(id, selectedClientId);
+    setSelectedClientId("");
+    const updated = await fetchProperty(id);
+    setProperty(updated);
+  }
+
+  async function handleUnlinkClient(occupancyId: string) {
+    await unlinkClientFromProperty(occupancyId);
+    const updated = await fetchProperty(id);
+    setProperty(updated);
+  }
 
   if (loading) {
     return <div className="h-40 bg-surface-container-low rounded animate-pulse" />;
@@ -79,7 +105,44 @@ export default function PropertyDetailPage() {
             )}
           </Card>
           <Card title="Linked Clients">
-            <p className="text-sm text-on-surface-variant">No linked clients.</p>
+            <div className="space-y-2 mb-3">
+              {property.occupancyRecords?.length ? (
+                property.occupancyRecords.map((r: any) => (
+                  <div key={r.id} className="flex items-center justify-between text-sm">
+                    <Link href={`/clients/${r.client.id}`} className="text-primary hover:text-gold transition-colors">
+                      {r.client.name}
+                    </Link>
+                    <button
+                      onClick={() => handleUnlinkClient(r.id)}
+                      className="text-xs text-status-negative-text hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-on-surface-variant">No linked clients.</p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={selectedClientId}
+                onChange={(e) => setSelectedClientId(e.target.value)}
+                className="flex-1 rounded-lg border border-surface-container-highest px-2 py-1.5 text-sm"
+              >
+                <option value="">Select a client…</option>
+                {allClients.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleLinkClient}
+                disabled={!selectedClientId}
+                className="bg-gold text-white px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Link
+              </button>
+            </div>
           </Card>
           <Card title="Linked Documents">
             {property.linkedDocuments?.length ? (

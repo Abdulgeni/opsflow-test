@@ -15,6 +15,7 @@ export default function ClientDetailPage() {
     contactLogs: ApiContactLog[];
     linkedDocuments: any[];
     linkedWorkflows: any[];
+    occupancyRecords: any[];
   }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +76,17 @@ export default function ClientDetailPage() {
             )}
           </Card>
           <Card title="Linked Properties">
-            <p className="text-sm text-on-surface-variant">No linked properties.</p>
+            {client.occupancyRecords?.length ? (
+              <div className="space-y-2">
+                {client.occupancyRecords.map((r: any) => (
+                  <Link key={r.id} href={`/properties/${r.property.id}`} className="block text-sm text-primary hover:text-gold transition-colors">
+                    {r.property.name}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-on-surface-variant">No linked properties.</p>
+            )}
           </Card>
           <Card title="Linked Documents">
             {client.linkedDocuments?.length ? (

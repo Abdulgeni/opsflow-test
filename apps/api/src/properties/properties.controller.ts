@@ -41,13 +41,28 @@ export class PropertiesController {
   }
 
   @Post(":id/maintenance")
-  createMaintenanceRequest(@Param("id") id: string, @Body("description") description: string) {
-    return this.propertiesService.createMaintenanceRequest(id, description);
+  createMaintenanceRequest(
+    @Param("id") propertyId: string,
+    @Body() data: { description: string; priority: "LOW" | "MEDIUM" | "HIGH" }
+  ) {
+    return this.propertiesService.createMaintenanceRequest(propertyId, data.description);
   }
 
-  @Patch("maintenance/:id/resolve")
+  @Patch("maintenance/:id")
   @Roles("ADMIN", "MANAGER")
-  resolveMaintenanceRequest(@Param("id") id: string) {
+  updateMaintenanceRequest(@Param("id") id: string) {
     return this.propertiesService.resolveMaintenanceRequest(id);
+  }
+
+  @Post(":id/link-client")
+  @Roles("ADMIN", "MANAGER")
+  linkClient(@Param("id") id: string, @Body("clientId") clientId: string) {
+    return this.propertiesService.linkClient(id, clientId);
+  }
+
+  @Delete("occupancy/:occupancyId")
+  @Roles("ADMIN", "MANAGER")
+  unlinkClient(@Param("occupancyId") occupancyId: string) {
+    return this.propertiesService.unlinkClient(occupancyId);
   }
 }
