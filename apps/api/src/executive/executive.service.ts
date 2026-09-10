@@ -51,6 +51,18 @@ export class ExecutiveService {
     return count;
   }
 
+  private async resolveEntityName(type: string, id: string): Promise<string | null> {
+    if (type === "Property") {
+      const property = await this.prisma.property.findUnique({ where: { id }, select: { name: true } });
+      return property?.name ?? null;
+    }
+    if (type === "Client") {
+      const client = await this.prisma.client.findUnique({ where: { id }, select: { name: true } });
+      return client?.name ?? null;
+    }
+    return null;
+  }
+
   async getFlags() {
     const flags: { id: string; title: string; reason: string }[] = [];
     const now = new Date();
@@ -68,9 +80,13 @@ export class ExecutiveService {
       const businessDaysInStage = this.countBusinessDays(new Date(lastMoved), now);
 
       if (businessDaysInStage > 5) {
+        const linkedName = wf.linkedEntityType && wf.linkedEntityId
+          ? await this.resolveEntityName(wf.linkedEntityType, wf.linkedEntityId)
+          : null;
+
         flags.push({
           id: wf.id,
-          title: wf.title,
+          title: linkedName ? `${wf.title} (${linkedName})` : wf.title,
           reason: `Stalled ${businessDaysInStage} business days in current stage`,
         });
       }
