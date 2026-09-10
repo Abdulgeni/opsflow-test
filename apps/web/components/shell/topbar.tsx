@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { getTheme, setTheme } from "@/lib/theme";
+import { getSocket } from "@/lib/socket";
 import { SearchBar } from "./search-bar";
 
 function authHeaders(): HeadersInit {
@@ -47,6 +48,28 @@ export function TopBar() {
       .then(setNotifications)
       .catch(() => setNotifications([]));
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const socket = getSocket();
+
+    // We need the real user ID, not just name/email, to join the right room.
+    const storedUser = localStorage.getItem("opsflow_user");
+    const userId = storedUser ? JSON.parse(storedUser).id : null;
+    if (!userId) return;
+
+    socket.emit("joinUserNotifications", userId);
+
+    function handleNewNotification(notification: Notification) {
+      setNotifications((prev) => [notification, ...prev]);
+    }
+
+    socket.on("notification:new", handleNewNotification);
+
+    return () => {
+      socket.off("notification:new", handleNewNotification);
+    };
+  }, [user]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
