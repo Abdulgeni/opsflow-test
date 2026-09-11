@@ -46,6 +46,24 @@ export default function DocumentsPage() {
       linkedEntityType: data.linkedEntityType, 
       linkedEntityId: data.linkedEntityId 
     });
+
+    if (data.file) {
+      const { uploadUrl } = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${newDoc.id}/upload-url`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("opsflow_token")}`,
+        },
+        body: JSON.stringify({ contentType: data.file.type }),
+      }).then((r) => r.json());
+
+      await fetch(uploadUrl, {
+        method: "PUT",
+        body: data.file,
+        headers: { "Content-Type": data.file.type },
+      });
+    }
+
     await load();
     show("Document uploaded successfully");
   }

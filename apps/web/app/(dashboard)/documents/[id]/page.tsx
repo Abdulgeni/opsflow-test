@@ -44,7 +44,22 @@ export default function DocumentDetailPage() {
         </div>
         <div className="flex gap-2">
           <button className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors">Edit</button>
-          <button className="bg-charcoal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-container transition-colors">Download</button>
+          <button
+            className="bg-charcoal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-container transition-colors"
+            onClick={async () => {
+              const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${id}/download-url`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("opsflow_token")}` },
+              });
+              if (!res.ok) {
+                alert("Failed to get download link");
+                return;
+              }
+              const { downloadUrl } = await res.json();
+              window.open(downloadUrl, "_blank");
+            }}
+          >
+            Download
+          </button>
         </div>
       </div>
 

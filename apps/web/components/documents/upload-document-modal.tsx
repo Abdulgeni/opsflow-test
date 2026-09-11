@@ -16,18 +16,30 @@ export function UploadDocumentModal({
   const [category, setCategory] = useState("Legal");
   const [linkedEntityType, setLinkedEntityType] = useState("");
   const [linkedEntityId, setLinkedEntityId] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     if (!title || !linkedEntityId) return;
-    await onUpload({ title, category, linkedEntityType, linkedEntityId, file: null });
-    setTitle("");
-    setCategory("Legal");
-    setLinkedEntityType("");
-    setLinkedEntityId("");
-    onClose();
+    setLoading(true);
+    try {
+      await onUpload({ title, category, linkedEntityType, linkedEntityId, file });
+      setTitle("");
+      setCategory("Legal");
+      setLinkedEntityType("");
+      setLinkedEntityId("");
+      setFile(null);
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -37,6 +49,12 @@ export function UploadDocumentModal({
         <p className="text-sm text-on-surface-variant mb-6">
           Add a new document and link it to a record.
         </p>
+
+        {error && (
+          <div className="mb-4 rounded-lg bg-status-negative-bg text-status-negative-text px-4 py-3 text-sm">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -75,10 +93,11 @@ export function UploadDocumentModal({
             <label className="block text-sm font-medium text-on-surface mb-1">File</label>
             <input
               type="file"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               className="block w-full text-sm text-on-surface-variant file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container-low file:text-sm"
             />
             <p className="text-xs text-on-surface-variant mt-1">
-              Attach a file for your own reference. Document details (title, category, version) are saved and tracked in OpsFlow.
+              Attach a file to store it securely with this document record.
             </p>
           </div>
 
@@ -86,15 +105,17 @@ export function UploadDocumentModal({
             <button
               type="button"
               onClick={onClose}
-              className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors"
+              disabled={loading}
+              className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+              disabled={loading}
+              className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              Upload
+              {loading ? "Uploading…" : "Upload"}
             </button>
           </div>
         </form>
