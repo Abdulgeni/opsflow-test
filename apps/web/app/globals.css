@@ -118,6 +118,7 @@ button:active { transform: scale(0.96); }
 .dark .text-on-surface-variant { color: #9a9a9a !important; }
 .dark .border-surface-container-highest { border-color: #333336 !important; }
 .dark .bg-surface-container-low { background-color: #26262a !important; }
+.dark thead tr { background-color: #26262a !important; }
 
 @media (max-width: 768px) {
   .responsive-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }

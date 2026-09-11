@@ -131,7 +131,7 @@ export default function UsersPage() {
             <table className="w-full text-left border-collapse min-w-[640px]">
               <thead>
                 <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
-                  {["Name", "Department", "Role", "Status"].map((h) => (
+                  {["Name", "Department", "Role", "Status", "Actions"].map((h) => (
                     <th key={h} className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide">
                       {h}
                     </th>
@@ -146,6 +146,25 @@ export default function UsersPage() {
                     <td className="py-4 px-2 text-sm text-on-surface-variant">{displayRole(u.role)}</td>
                     <td className="py-4 px-2">
                       <Badge tone={statusTone(u.status)}>{displayStatus(u.status)}</Badge>
+                    </td>
+                    <td className="py-4 px-2">
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Deactivate ${u.name}?`)) return;
+                          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${u.id}/status`, {
+                            method: "PATCH",
+                            headers: {
+                              "Content-Type": "application/json",
+                              Authorization: `Bearer ${localStorage.getItem("opsflow_token")}`,
+                            },
+                            body: JSON.stringify({ status: "DEACTIVATED" }),
+                          });
+                          loadUsers();
+                        }}
+                        className="text-xs text-status-negative-text hover:underline"
+                      >
+                        Deactivate
+                      </button>
                     </td>
                   </tr>
                 ))}

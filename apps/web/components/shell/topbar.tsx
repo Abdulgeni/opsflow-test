@@ -62,6 +62,14 @@ export function TopBar() {
 
     function handleNewNotification(notification: Notification) {
       setNotifications((prev) => [notification, ...prev]);
+
+      if (typeof window !== "undefined" && "Notification" in window) {
+        if (window.Notification.permission === "granted") {
+          new window.Notification("OpsFlow", { body: notification.message });
+        } else if (window.Notification.permission !== "denied") {
+          window.Notification.requestPermission();
+        }
+      }
     }
 
     socket.on("notification:new", handleNewNotification);

@@ -31,7 +31,7 @@ export class UsersController {
   }
 
   @Post()
-  @Roles("ADMIN")
+  @Roles("ADMIN", "EXECUTIVE")
   create(@Body() dto: any) {
     return this.usersService.create(dto);
   }
@@ -43,7 +43,7 @@ export class UsersController {
   }
 
   @Patch(":id/status")
-  @Roles("ADMIN")
+  @Roles("ADMIN", "EXECUTIVE")
   updateStatus(@Param("id") id: string, @Body("status") status: any) {
     return this.usersService.updateStatus(id, status);
   }
@@ -51,6 +51,14 @@ export class UsersController {
   @Patch("me")
   updateOwnProfile(@Req() req: any, @Body() data: any) {
     return this.usersService.updateOwnProfile(req.user.id, data);
+  }
+
+  @Patch("me/password")
+  changePassword(
+    @Req() req: any,
+    @Body() data: { currentPassword: string; newPassword: string }
+  ) {
+    return this.usersService.changePassword(req.user.id, data.currentPassword, data.newPassword);
   }
 
   @Get(":id/login-activity")

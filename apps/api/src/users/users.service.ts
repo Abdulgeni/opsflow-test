@@ -94,6 +94,26 @@ export class UsersService {
     return this.prisma.user.update({ where: { id: userId }, data });
   }
 
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.passwordHash) {
+      throw new BadRequestException("Account not found");
+    }
+
+    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!valid) {
+      throw new BadRequestException("Current password is incorrect");
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newHash },
+    });
+
+    return { success: true };
+  }
+
   async activateAccount(token: string, password: string) {
     const tokenRecord = await this.prisma.activationToken.findUnique({
       where: { token },
