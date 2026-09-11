@@ -4,14 +4,16 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { fetchDocument, ApiDocument, ApiDocumentVersion } from "@/lib/api/documents";
+import { fetchDocument, updateDocument, ApiDocument, ApiDocumentVersion } from "@/lib/api/documents";
 import { trackRecentView } from "@/lib/recent";
+import { EditDocumentModal } from "@/components/documents/edit-document-modal";
 
 export default function DocumentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [doc, setDoc] = useState<(ApiDocument & { versions: ApiDocumentVersion[] }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     fetchDocument(id)
@@ -43,7 +45,12 @@ export default function DocumentDetailPage() {
           <p className="text-sm text-on-surface-variant mt-2">Uploaded by: {doc.uploadedBy.name}</p>
         </div>
         <div className="flex gap-2">
-          <button className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors">Edit</button>
+          <button
+            onClick={() => setEditOpen(true)}
+            className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors"
+          >
+            Edit
+          </button>
           <button
             className="bg-charcoal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-container transition-colors"
             onClick={async () => {
@@ -89,6 +96,19 @@ export default function DocumentDetailPage() {
           </div>
         </Card>
       </div>
+
+      {doc && (
+        <EditDocumentModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          initial={{ title: doc.title, category: doc.category }}
+          onSave={async (data) => {
+            await updateDocument(id, data);
+            const updated = await fetchDocument(id);
+            setDoc(updated);
+          }}
+        />
+      )}
     </div>
   );
 }

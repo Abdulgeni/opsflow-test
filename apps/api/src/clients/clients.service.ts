@@ -5,11 +5,12 @@ import { PrismaService } from "../prisma/prisma.service";
 export class ClientsService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(params: { status?: string; type?: string; search?: string }) {
-    const { status, type, search } = params;
+  async findAll(params: { status?: string; type?: string; search?: string; includeArchived?: boolean }) {
+    const { status, type, search, includeArchived } = params;
     return this.prisma.client.findMany({
       where: {
-        ...(status && { status: status as any }),
+        ...(includeArchived ? { status: "ARCHIVED" } : { status: { not: "ARCHIVED" } }),
+        ...(status && !includeArchived && { status: status as any }),
         ...(type && { type: type as any }),
         ...(search && {
           OR: [
@@ -54,6 +55,16 @@ export class ClientsService {
 
   async update(id: string, data: Partial<{ name: string; email: string; phone: string; status: string }>) {
     return this.prisma.client.update({ where: { id }, data: data as any });
+  }
+
+  async archive(id: string) {
+    const existing = await this.prisma.client.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException("Client not found");
+    return this.prisma.client.update({ where: { id }, data: { status: "ARCHIVED" } });
+  }
+
+  async unarchive(id: string) {
+    return this.prisma.client.update({ where: { id }, data: { status: "LEAD" } });
   }
 
   async addContactLog(clientId: string, createdById: string, notes: string, type: "CALL" | "MEETING" | "EMAIL" = "CALL") {

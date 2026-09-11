@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { fetchClient, ApiClient, ApiContactLog } from "@/lib/api/clients";
+import { fetchClient, updateClient, ApiClient, ApiContactLog } from "@/lib/api/clients";
 import { clientStatusTone, statusLabel } from "@/lib/status-tones";
 import { trackRecentView } from "@/lib/recent";
+import { EditClientModal } from "@/components/clients/edit-client-modal";
 
 export default function ClientDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [client, setClient] = useState<(ApiClient & { 
     contactLogs: ApiContactLog[];
     linkedDocuments: any[];
@@ -19,6 +21,8 @@ export default function ClientDetailPage() {
   }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [archiving, setArchiving] = useState(false);
 
   useEffect(() => {
     fetchClient(id)
@@ -29,6 +33,25 @@ export default function ClientDetailPage() {
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load client"))
       .finally(() => setLoading(false));
   }, [id]);
+
+  async function handleArchive() {
+    if (!confirm("Are you sure you want to archive this client?")) return;
+    setArchiving(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/clients/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("opsflow_token")}` },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message ?? "Failed to archive client");
+      }
+      router.push("/clients");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to archive client");
+      setArchiving(false);
+    }
+  }
 
   if (loading) return <div className="h-40 bg-surface-container-low rounded animate-pulse" />;
   if (error || !client) return <div className="text-sm text-status-negative-text">{error ?? "Client not found."}</div>;
@@ -51,8 +74,19 @@ export default function ClientDetailPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors">Edit</button>
-          <button className="border border-status-negative-text text-status-negative-text px-4 py-2 rounded-lg text-sm hover:bg-status-negative-bg transition-colors">Archive</button>
+          <button
+            onClick={() => setEditOpen(true)}
+            className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors"
+          >
+            Edit
+          </button>
+          <button
+            onClick={handleArchive}
+            disabled={archiving}
+            className="border border-status-negative-text text-status-negative-text px-4 py-2 rounded-lg text-sm hover:bg-status-negative-bg transition-colors disabled:opacity-50"
+          >
+            {archiving ? "Archiving…" : "Archive"}
+          </button>
         </div>
       </div>
 
@@ -110,6 +144,23 @@ export default function ClientDetailPage() {
           </div>
         </Card>
       </div>
+
+      {client && (
+        <EditClientModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          initial={{
+            name: client.name,
+            email: client.email,
+            phone: client.phone ?? "",
+          }}
+          onSave={async (data) => {
+            await updateClient(id, data);
+            const updated = await fetchClient(id);
+            setClient(updated);
+          }}
+        />
+      )}
     </div>
   );
 }

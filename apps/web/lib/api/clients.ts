@@ -44,9 +44,16 @@ export interface ApiOccupancyRecord {
   property: { id: string; name: string };
 }
 
-export async function fetchClients(params: { status?: string; type?: string; search?: string }): Promise<ApiClient[]> {
+export async function fetchClients(params: {
+  status?: string;
+  type?: string;
+  search?: string;
+  includeArchived?: boolean;
+}): Promise<ApiClient[]> {
   const query = new URLSearchParams(
-    Object.entries(params).filter(([, v]) => v) as [string, string][]
+    Object.entries(params)
+      .filter(([, v]) => v !== undefined && v !== "" && v !== false)
+      .map(([k, v]) => [k, String(v)]) as [string, string][]
   );
   const res = await fetch(`${API_URL}/clients?${query}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Failed to fetch clients");
@@ -74,5 +81,24 @@ export async function createClient(data: { name: string; type: "INDIVIDUAL" | "O
     const body = await res.json().catch(() => null);
     throw new Error(body?.message ?? "Failed to create client");
   }
+  return res.json();
+}
+
+export async function updateClient(id: string, data: { name: string; email: string; phone: string }) {
+  const res = await fetch(`${API_URL}/clients/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update client");
+  return res.json();
+}
+
+export async function unarchiveClient(id: string) {
+  const res = await fetch(`${API_URL}/clients/${id}/unarchive`, {
+    method: "PATCH",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to restore client");
   return res.json();
 }

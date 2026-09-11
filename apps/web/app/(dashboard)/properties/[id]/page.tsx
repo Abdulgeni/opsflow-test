@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { fetchProperty, ApiProperty, ApiMaintenanceRequest, linkClientToProperty, unlinkClientFromProperty } from "@/lib/api/properties";
+import { fetchProperty, ApiProperty, ApiMaintenanceRequest, linkClientToProperty, unlinkClientFromProperty, updateProperty } from "@/lib/api/properties";
 import { propertyStatusTone, maintenanceStatusTone, statusLabel } from "@/lib/status-tones";
 import { trackRecentView } from "@/lib/recent";
+import { EditPropertyModal } from "@/components/properties/edit-property-modal";
 
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [property, setProperty] = useState<(ApiProperty & { 
     maintenanceRequests: ApiMaintenanceRequest[];
     linkedDocuments: any[];
@@ -21,6 +23,8 @@ export default function PropertyDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [allClients, setAllClients] = useState<{ id: string; name: string }[]>([]);
   const [selectedClientId, setSelectedClientId] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
+  const [archiving, setArchiving] = useState(false);
 
   useEffect(() => {
     fetchProperty(id)
@@ -55,6 +59,21 @@ export default function PropertyDetailPage() {
     setProperty(updated);
   }
 
+  async function handleArchive() {
+    if (!confirm("Are you sure you want to archive this property? This can't be undone from the list view.")) return;
+    setArchiving(true);
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/properties/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("opsflow_token")}` },
+      });
+      router.push("/properties");
+    } catch (err) {
+      alert("Failed to archive property");
+      setArchiving(false);
+    }
+  }
+
   if (loading) {
     return <div className="h-40 bg-surface-container-low rounded animate-pulse" />;
   }
@@ -78,11 +97,18 @@ export default function PropertyDetailPage() {
           <p className="text-sm text-on-surface-variant mt-1">{property.address} · {property.type}</p>
         </div>
         <div className="flex gap-2">
-          <button className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors">
+          <button
+            onClick={() => setEditOpen(true)}
+            className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors"
+          >
             Edit
           </button>
-          <button className="border border-status-negative-text text-status-negative-text px-4 py-2 rounded-lg text-sm hover:bg-status-negative-bg transition-colors">
-            Archive
+          <button
+            onClick={handleArchive}
+            disabled={archiving}
+            className="border border-status-negative-text text-status-negative-text px-4 py-2 rounded-lg text-sm hover:bg-status-negative-bg transition-colors disabled:opacity-50"
+          >
+            {archiving ? "Archiving…" : "Archive"}
           </button>
         </div>
       </div>
@@ -167,6 +193,19 @@ export default function PropertyDetailPage() {
           </div>
         </Card>
       </div>
+
+      {property && (
+        <EditPropertyModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          initial={{ name: property.name, address: property.address, type: property.type }}
+          onSave={async (data) => {
+            await updateProperty(id, data);
+            const updated = await fetchProperty(id);
+            setProperty(updated);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -51,3 +51,12 @@ export async function createDocument(data: { title: string; category: string; li
   }
   return res.json();
 }
+export async function updateDocument(id: string, data: { title: string; category: string }) {
+  const res = await fetch(`${API_URL}/documents/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update document");
+  return res.json();
+}

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { AddPropertyModal } from "@/components/properties/add-property-modal";
-import { fetchProperties, createProperty, ApiProperty } from "@/lib/api/properties";
+import { fetchProperties, createProperty, unarchiveProperty, ApiProperty } from "@/lib/api/properties";
 import { propertyStatusTone, statusLabel } from "@/lib/status-tones";
 import { useToast } from "@/components/ui/toast";
 
@@ -18,6 +18,7 @@ export default function PropertiesPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const { show } = useToast();
 
@@ -25,7 +26,7 @@ export default function PropertiesPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchProperties({ search, status, type });
+      const data = await fetchProperties({ search, status, type, includeArchived: showArchived });
       setProperties(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load properties");
@@ -37,12 +38,22 @@ export default function PropertiesPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, status, type]);
+  }, [search, status, type, showArchived]);
 
   async function handleAdd(data: { name: string; address: string; type: string }) {
     await createProperty(data);
     await load();
     show("Property added successfully");
+  }
+
+  async function handleRestore(id: string) {
+    try {
+      await unarchiveProperty(id);
+      show("Property restored");
+      await load();
+    } catch (err) {
+      show(err instanceof Error ? err.message : "Failed to restore property");
+    }
   }
 
   return (
@@ -73,7 +84,8 @@ export default function PropertiesPage() {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="rounded-lg border border-surface-container-highest px-3 py-2 text-sm"
+            disabled={showArchived}
+            className="rounded-lg border border-surface-container-highest px-3 py-2 text-sm disabled:opacity-50"
           >
             <option value="">Status: All</option>
             {STATUSES.map((s) => (
@@ -92,6 +104,15 @@ export default function PropertiesPage() {
             <option value="Commercial">Commercial</option>
             <option value="Industrial">Industrial</option>
           </select>
+          <label className="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer select-none whitespace-nowrap">
+            <input
+              type="checkbox"
+              checked={showArchived}
+              onChange={(e) => setShowArchived(e.target.checked)}
+              className="rounded border-surface-container-highest"
+            />
+            Show archived
+          </label>
         </div>
 
         {loading && (
@@ -113,7 +134,9 @@ export default function PropertiesPage() {
 
         {!loading && !error && properties.length === 0 && (
           <div className="text-center py-10">
-            <p className="text-sm text-on-surface-variant">No properties match your filters.</p>
+            <p className="text-sm text-on-surface-variant">
+              {showArchived ? "No archived properties." : "No properties match your filters."}
+            </p>
           </div>
         )}
 
@@ -122,7 +145,7 @@ export default function PropertiesPage() {
             <table className="w-full text-left border-collapse min-w-[640px]">
               <thead>
                 <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
-                  {["Name", "Address", "Type", "Status"].map((h) => (
+                  {["Name", "Address", "Type", "Status", showArchived ? "Actions" : ""].filter(Boolean).map((h) => (
                     <th key={h} className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide">
                       {h}
                     </th>
@@ -142,6 +165,16 @@ export default function PropertiesPage() {
                     <td className="py-4 px-2">
                       <Badge tone={propertyStatusTone(p.status)}>{statusLabel(p.status)}</Badge>
                     </td>
+                    {showArchived && (
+                      <td className="py-4 px-2">
+                        <button
+                          onClick={() => handleRestore(p.id)}
+                          className="text-xs text-gold hover:underline"
+                        >
+                          Restore
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

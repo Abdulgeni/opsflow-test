@@ -5,11 +5,11 @@ import { PrismaService } from "../prisma/prisma.service";
 export class PropertiesService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(params: { status?: string; type?: string; search?: string }) {
-    const { status, type, search } = params;
+  async findAll(params: { status?: string; type?: string; search?: string; includeArchived?: boolean }) {
+    const { status, type, search, includeArchived } = params;
     return this.prisma.property.findMany({
       where: {
-        archivedAt: null,
+        ...(includeArchived ? { archivedAt: { not: null } } : { archivedAt: null }),
         ...(status && { status: status as any }),
         ...(type && { type }),
         ...(search && { name: { contains: search, mode: "insensitive" } }),
@@ -57,6 +57,10 @@ export class PropertiesService {
 
   async archive(id: string) {
     return this.prisma.property.update({ where: { id }, data: { archivedAt: new Date() } });
+  }
+
+  async unarchive(id: string) {
+    return this.prisma.property.update({ where: { id }, data: { archivedAt: null } });
   }
 
   async createMaintenanceRequest(propertyId: string, description: string) {

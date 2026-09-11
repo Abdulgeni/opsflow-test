@@ -12,9 +12,10 @@ export class PropertiesController {
   findAll(
     @Query("status") status?: string,
     @Query("type") type?: string,
-    @Query("search") search?: string
+    @Query("search") search?: string,
+    @Query("includeArchived") includeArchived?: string
   ) {
-    return this.propertiesService.findAll({ status, type, search });
+    return this.propertiesService.findAll({ status, type, search, includeArchived: includeArchived === "true" });
   }
 
   @Get(":id")
@@ -38,6 +39,12 @@ export class PropertiesController {
   @Roles("ADMIN")
   archive(@Param("id") id: string) {
     return this.propertiesService.archive(id);
+  }
+
+  @Patch(":id/unarchive")
+  @Roles("ADMIN")
+  unarchive(@Param("id") id: string) {
+    return this.propertiesService.unarchive(id);
   }
 
   @Post(":id/maintenance")

@@ -5,11 +5,11 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { AddClientModal } from "@/components/clients/add-client-modal";
-import { fetchClients, createClient, ApiClient } from "@/lib/api/clients";
+import { fetchClients, createClient, unarchiveClient, ApiClient } from "@/lib/api/clients";
 import { clientStatusTone, statusLabel } from "@/lib/status-tones";
 import { useToast } from "@/components/ui/toast";
 
-const STATUSES = ["LEAD", "ACTIVE", "INACTIVE", "ARCHIVED"];
+const STATUSES = ["LEAD", "ACTIVE", "INACTIVE"];
 const TYPES = ["INDIVIDUAL", "ORGANIZATION"];
 
 export default function ClientsPage() {
@@ -19,6 +19,7 @@ export default function ClientsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const { show } = useToast();
 
@@ -26,7 +27,7 @@ export default function ClientsPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchClients({ search, status, type });
+      const data = await fetchClients({ search, status, type, includeArchived: showArchived });
       setClients(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load clients");
@@ -38,7 +39,7 @@ export default function ClientsPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, status, type]);
+  }, [search, status, type, showArchived]);
 
   async function handleAdd(data: { name: string; type: "Individual" | "Organization"; email: string; phone: string }) {
     await createClient({
@@ -49,6 +50,16 @@ export default function ClientsPage() {
     });
     await load();
     show("Client added successfully");
+  }
+
+  async function handleRestore(id: string) {
+    try {
+      await unarchiveClient(id);
+      show("Client restored");
+      await load();
+    } catch (err) {
+      show(err instanceof Error ? err.message : "Failed to restore client");
+    }
   }
 
   return (
@@ -79,7 +90,8 @@ export default function ClientsPage() {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="rounded-lg border border-surface-container-highest px-3 py-2 text-sm"
+            disabled={showArchived}
+            className="rounded-lg border border-surface-container-highest px-3 py-2 text-sm disabled:opacity-50"
           >
             <option value="">Status: All</option>
             {STATUSES.map((s) => (
@@ -100,6 +112,15 @@ export default function ClientsPage() {
               </option>
             ))}
           </select>
+          <label className="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer select-none whitespace-nowrap">
+            <input
+              type="checkbox"
+              checked={showArchived}
+              onChange={(e) => setShowArchived(e.target.checked)}
+              className="rounded border-surface-container-highest"
+            />
+            Show archived
+          </label>
         </div>
 
         {loading && (
@@ -121,7 +142,9 @@ export default function ClientsPage() {
 
         {!loading && !error && clients.length === 0 && (
           <div className="text-center py-10">
-            <p className="text-sm text-on-surface-variant">No clients match your filters.</p>
+            <p className="text-sm text-on-surface-variant">
+              {showArchived ? "No archived clients." : "No clients match your filters."}
+            </p>
           </div>
         )}
 
@@ -130,7 +153,7 @@ export default function ClientsPage() {
             <table className="w-full text-left border-collapse min-w-[640px]">
               <thead>
                 <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
-                  {["Name", "Type", "Email", "Phone", "Status"].map((h) => (
+                  {["Name", "Type", "Email", "Phone", "Status", showArchived ? "Actions" : ""].filter(Boolean).map((h) => (
                     <th key={h} className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide">
                       {h}
                     </th>
@@ -153,6 +176,16 @@ export default function ClientsPage() {
                     <td className="py-4 px-2">
                       <Badge tone={clientStatusTone(c.status)}>{statusLabel(c.status)}</Badge>
                     </td>
+                    {showArchived && (
+                      <td className="py-4 px-2">
+                        <button
+                          onClick={() => handleRestore(c.id)}
+                          className="text-xs text-gold hover:underline"
+                        >
+                          Restore
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { ClientsService } from "./clients.service";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Roles, RolesGuard } from "../auth/roles.guard";
@@ -12,9 +12,15 @@ export class ClientsController {
   findAll(
     @Query("status") status?: string,
     @Query("type") type?: string,
-    @Query("search") search?: string
+    @Query("search") search?: string,
+    @Query("includeArchived") includeArchived?: string
   ) {
-    return this.clientsService.findAll({ status, type, search });
+    return this.clientsService.findAll({
+      status,
+      type,
+      search,
+      includeArchived: includeArchived === "true",
+    });
   }
 
   @Get(":id")
@@ -32,6 +38,18 @@ export class ClientsController {
   @Roles("ADMIN", "MANAGER")
   update(@Param("id") id: string, @Body() data: any) {
     return this.clientsService.update(id, data);
+  }
+
+  @Delete(":id")
+  @Roles("ADMIN")
+  archive(@Param("id") id: string) {
+    return this.clientsService.archive(id);
+  }
+
+  @Patch(":id/unarchive")
+  @Roles("ADMIN")
+  unarchive(@Param("id") id: string) {
+    return this.clientsService.unarchive(id);
   }
 
   // Staff CAN add contact logs (SRS 4.2.4) — no role restriction here.

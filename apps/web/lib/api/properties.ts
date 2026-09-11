@@ -43,9 +43,16 @@ export interface ApiOccupancyRecord {
   client: { id: string; name: string };
 }
 
-export async function fetchProperties(params: { status?: string; type?: string; search?: string }): Promise<ApiProperty[]> {
+export async function fetchProperties(params: {
+  status?: string;
+  type?: string;
+  search?: string;
+  includeArchived?: boolean;
+}): Promise<ApiProperty[]> {
   const query = new URLSearchParams(
-    Object.entries(params).filter(([, v]) => v) as [string, string][]
+    Object.entries(params)
+      .filter(([, v]) => v !== undefined && v !== "" && v !== false)
+      .map(([k, v]) => [k, String(v)]) as [string, string][]
   );
   const res = await fetch(`${API_URL}/properties?${query}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Failed to fetch properties");
@@ -92,5 +99,24 @@ export async function unlinkClientFromProperty(occupancyId: string) {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error("Failed to unlink client");
+  return res.json();
+}
+
+export async function updateProperty(id: string, data: { name: string; address: string; type: string }) {
+  const res = await fetch(`${API_URL}/properties/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update property");
+  return res.json();
+}
+
+export async function unarchiveProperty(id: string) {
+  const res = await fetch(`${API_URL}/properties/${id}/unarchive`, {
+    method: "PATCH",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to restore property");
   return res.json();
 }

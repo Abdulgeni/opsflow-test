@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { DocumentsService } from "./documents.service";
 import { StorageService } from "./storage.service";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
@@ -33,6 +33,12 @@ export class DocumentsController {
     @Body() data: { title: string; category: string; linkedEntityType: string; linkedEntityId: string }
   ) {
     return this.documentsService.create({ ...data, uploadedById: req.user.id });
+  }
+
+  @Patch(":id")
+  @Roles("ADMIN", "MANAGER")
+  update(@Param("id") id: string, @Body() data: { title?: string; category?: string }) {
+    return this.documentsService.update(id, data);
   }
 
   @Post(":id/upload-url")
