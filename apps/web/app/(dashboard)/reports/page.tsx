@@ -68,8 +68,6 @@ export default function ReportsPage() {
   if (loading) return <div className="h-40 bg-surface-container-low rounded animate-pulse" />;
   if (error || !summary) return <div className="text-sm text-status-negative-text">{error ?? "No data."}</div>;
 
-  const maxValue = 100;
-
   return (
     <div className="space-y-6">
       {/* Wrapped title with gold accent line */}
@@ -98,29 +96,58 @@ export default function ReportsPage() {
             No historical data yet — snapshots are captured daily. Check back after a few days.
           </p>
         ) : (
-          <div className="h-64 flex items-end gap-4 px-4 pt-8 relative overflow-x-auto">
-            {[0, 25, 50, 75, 100].map((v) => (
-              <div
-                key={v}
-                className="absolute left-0 right-0 border-t border-surface-container-highest text-xs text-on-surface-variant"
-                style={{ bottom: `${(v / maxValue) * 100}%` }}
-              >
-                <span className="absolute -left-8 -top-2">{v}%</span>
-              </div>
-            ))}
-            <div className="flex items-end justify-between w-full h-full relative z-10 gap-2">
-              {history.map((snap) => (
-                <div key={snap.id} className="flex flex-col items-center gap-2 flex-1 min-w-[40px]">
-                  <span className="text-xs font-medium text-primary">{snap.completionRate}%</span>
-                  <div
-                    className="w-8 bg-gold rounded-t"
-                    style={{ height: `${(snap.completionRate / maxValue) * 180}px` }}
-                  />
-                  <span className="text-xs text-on-surface-variant whitespace-nowrap">
-                    {new Date(snap.capturedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                  </span>
-                </div>
+          <div className="flex gap-3 pt-6">
+            {/* Fixed Y-axis column — never scrolls horizontally */}
+            <div className="flex flex-col justify-between h-56 text-xs text-on-surface-variant flex-shrink-0">
+              {[100, 75, 50, 25, 0].map((v) => (
+                <span key={v} className="tabular-nums leading-none">{v}%</span>
               ))}
+            </div>
+
+            {/* Scrollable bar area */}
+            <div className="flex-1 overflow-x-auto pb-8">
+              <div className="h-56 flex items-end relative border-l border-surface-container-highest pl-3 min-w-max">
+                {/* Gridlines — inside scroll area so they match bar width */}
+                {[0, 25, 50, 75, 100].map((v) => (
+                  <div
+                    key={v}
+                    className="absolute left-0 right-0 border-t border-surface-container-highest pointer-events-none"
+                    style={{ bottom: `${v}%` }}
+                  />
+                ))}
+
+                {/* Bars */}
+                <div className="flex items-end h-full relative z-10 gap-4">
+                  {history.map((snap) => (
+                    <div
+                      key={snap.id}
+                      className="relative flex flex-col items-center justify-end h-full flex-shrink-0 w-14"
+                    >
+                      <span
+                        className="absolute text-xs font-medium text-primary whitespace-nowrap"
+                        style={{ bottom: `calc(${snap.completionRate}% + 4px)` }}
+                      >
+                        {snap.completionRate}%
+                      </span>
+                      <div
+                        className="w-8 bg-gold rounded-t"
+                        style={{ height: `${snap.completionRate}%` }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Date labels row — aligned under each bar */}
+              <div className="flex gap-4 pl-3 mt-1">
+                {history.map((snap) => (
+                  <div key={snap.id} className="w-14 flex-shrink-0 text-center">
+                    <span className="text-xs text-on-surface-variant whitespace-nowrap">
+                      {new Date(snap.capturedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

@@ -81,7 +81,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link href="/properties" className="bg-charcoal text-white rounded-lg p-5 hover:bg-primary-container transition-colors">
           <p className="font-serif text-lg">+ Add a property</p>
           <p className="text-sm text-white/70 mt-1">Register a new property in the system.</p>

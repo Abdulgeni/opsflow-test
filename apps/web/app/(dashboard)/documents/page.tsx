@@ -78,7 +78,7 @@ export default function DocumentsPage() {
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity btn-glow"
         >
           + Upload document
         </button>
@@ -155,8 +155,12 @@ export default function DocumentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-highest">
-                {documents.map((d) => (
-                  <tr key={d.id} className="hover:bg-surface-bright/50 transition-colors">
+                {documents.map((d, i) => (
+                  <tr
+                    key={d.id}
+                    style={{ animationDelay: `${i * 30}ms` }}
+                    className="animate-in hover:bg-surface-bright/50 transition-colors"
+                  >
                     <td className="py-4 px-2">
                       <Link href={`/documents/${d.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
                         {d.title}

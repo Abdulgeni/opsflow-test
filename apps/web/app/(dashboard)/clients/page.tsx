@@ -72,7 +72,7 @@ export default function ClientsPage() {
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity btn-glow"
         >
           + Add client
         </button>
@@ -161,8 +161,12 @@ export default function ClientsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-highest">
-                {clients.map((c) => (
-                  <tr key={c.id} className="hover:bg-surface-bright/50 transition-colors">
+                {clients.map((c, i) => (
+                  <tr
+                    key={c.id}
+                    style={{ animationDelay: `${i * 30}ms` }}
+                    className="animate-in hover:bg-surface-bright/50 transition-colors"
+                  >
                     <td className="py-4 px-2">
                       <Link href={`/clients/${c.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
                         {c.name}

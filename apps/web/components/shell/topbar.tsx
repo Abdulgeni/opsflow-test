@@ -31,6 +31,7 @@ export function TopBar() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [darkMode, setDarkMode] = useState(false);
+  const [badgeEnabled, setBadgeEnabled] = useState(true);
 
   const helpRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -40,6 +41,7 @@ export function TopBar() {
     const stored = localStorage.getItem("opsflow_user");
     if (stored) setUser(JSON.parse(stored));
     setDarkMode(getTheme() === "dark");
+    setBadgeEnabled(localStorage.getItem("opsflow_email_notifs") !== "false");
   }, []);
 
   useEffect(() => {
@@ -167,7 +169,7 @@ export function TopBar() {
               <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 01-3.46 0" />
             </svg>
-            {unreadCount > 0 && (
+            {unreadCount > 0 && badgeEnabled && (
               <span className="pulse-dot absolute top-1 right-1 w-2 h-2 bg-status-negative-text rounded-full" />
             )}
           </button>

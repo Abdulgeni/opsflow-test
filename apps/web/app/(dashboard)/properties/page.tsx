@@ -66,7 +66,7 @@ export default function PropertiesPage() {
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity btn-glow"
         >
           + Add property
         </button>
@@ -153,8 +153,12 @@ export default function PropertiesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-highest">
-                {properties.map((p) => (
-                  <tr key={p.id} className="hover:bg-surface-bright/50 transition-colors">
+                {properties.map((p, i) => (
+                  <tr
+                    key={p.id}
+                    style={{ animationDelay: `${i * 30}ms` }}
+                    className="animate-in hover:bg-surface-bright/50 transition-colors"
+                  >
                     <td className="py-4 px-2">
                       <Link href={`/properties/${p.id}`} className="text-sm text-primary font-medium hover:text-gold transition-colors">
                         {p.name}

@@ -33,7 +33,12 @@ export function Sidebar() {
               active ? "bg-white/5 text-white" : "text-white/60 hover:text-white/90 hover:bg-white/5"
             }`}
           >
-            {active && <span className="absolute left-0 top-0 bottom-0 w-[2px] bg-gold rounded-r" />}
+            {active && (
+              <span
+                className="absolute left-0 top-0 bottom-0 w-[3px] rounded-r"
+                style={{ background: "linear-gradient(180deg, #C5A059, #9c8143)" }}
+              />
+            )}
             <span aria-hidden="true">{item.icon}</span>
             <span>{item.label}</span>
           </Link>

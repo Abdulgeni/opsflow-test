@@ -80,7 +80,7 @@ export default function UsersPage() {
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
+          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer btn-glow"
         >
           + Add user
         </button>
@@ -139,8 +139,12 @@ export default function UsersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-highest">
-                {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-surface-bright/50 transition-colors">
+                {users.map((u, i) => (
+                  <tr
+                    key={u.id}
+                    style={{ animationDelay: `${i * 30}ms` }}
+                    className="animate-in hover:bg-surface-bright/50 transition-colors"
+                  >
                     <td className="py-4 px-2 text-sm text-primary font-medium">{u.name}</td>
                     <td className="py-4 px-2 text-sm text-on-surface-variant">{u.department ?? "—"}</td>
                     <td className="py-4 px-2 text-sm text-on-surface-variant">{displayRole(u.role)}</td>
@@ -180,7 +184,7 @@ export default function UsersPage() {
         </p>
 
         <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
-          <table className="w-full text-left border-collapse min-w-[640px]">
+          <table className="w-full text-left border-collapse min-w-[480px]">
             <thead>
               <tr className="border-b border-surface-container-highest">
                 <th className="py-3 px-2 text-xs font-medium text-on-surface-variant uppercase">Module</th>

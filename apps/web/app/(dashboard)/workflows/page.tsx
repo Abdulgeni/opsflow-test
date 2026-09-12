@@ -47,7 +47,7 @@ export default function WorkflowsPage() {
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+          className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity btn-glow"
         >
           + Create workflow
         </button>
@@ -84,8 +84,12 @@ export default function WorkflowsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-highest">
-                {workflows.map((wf) => (
-                  <tr key={wf.id} className="hover:bg-surface-bright/50 transition-colors">
+                {workflows.map((wf, i) => (
+                  <tr
+                    key={wf.id}
+                    style={{ animationDelay: `${i * 30}ms` }}
+                    className="animate-in hover:bg-surface-bright/50 transition-colors"
+                  >
                     <td className="py-4 px-2">
                       <Link
                         href={`/workflows/${wf.id}`}

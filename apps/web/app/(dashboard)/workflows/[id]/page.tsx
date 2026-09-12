@@ -134,31 +134,34 @@ async function handlePostComment() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg border border-surface-container-highest shadow-card p-6">
-        <div className="flex items-center">
-          {wf.stages.map((stage, i) => {
-            const isDone = i < wf.currentStageIndex;
-            const isActive = i === wf.currentStageIndex;
-            return (
-              <div key={stage} className="flex items-center flex-1 last:flex-none">
-                <div className="flex flex-col items-center">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                      isDone ? "bg-charcoal text-white" : isActive ? "border-2 border-gold text-gold bg-white" : "bg-surface-container-low text-on-surface-variant"
-                    }`}
-                  >
-                    {isDone ? "✓" : i + 1}
+      {/* Stage stepper — horizontally scrollable on narrow screens */}
+      <div className="bg-white rounded-lg border border-surface-container-highest shadow-card p-6 overflow-hidden">
+        <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0 pb-1">
+          <div className="flex items-center min-w-max md:min-w-0 md:w-full">
+            {wf.stages.map((stage, i) => {
+              const isDone = i < wf.currentStageIndex;
+              const isActive = i === wf.currentStageIndex;
+              return (
+                <div key={stage} className="flex items-center flex-1 last:flex-none min-w-[110px] md:min-w-0">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                        isDone ? "bg-charcoal text-white" : isActive ? "border-2 border-gold text-gold bg-white" : "bg-surface-container-low text-on-surface-variant"
+                      }`}
+                    >
+                      {isDone ? "✓" : i + 1}
+                    </div>
+                    <span className={`text-xs mt-2 text-center ${isActive ? "font-medium text-primary" : "text-on-surface-variant"}`}>
+                      {stage}
+                    </span>
                   </div>
-                  <span className={`text-xs mt-2 ${isActive ? "font-medium text-primary" : "text-on-surface-variant"}`}>
-                    {stage}
-                  </span>
+                  {i < wf.stages.length - 1 && (
+                    <div className={`flex-1 h-px mx-2 ${isDone ? "bg-gold" : "bg-surface-container-highest"}`} />
+                  )}
                 </div>
-                {i < wf.stages.length - 1 && (
-                  <div className={`flex-1 h-px mx-2 ${isDone ? "bg-gold" : "bg-surface-container-highest"}`} />
-                )}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
