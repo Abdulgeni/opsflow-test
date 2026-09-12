@@ -69,6 +69,10 @@ export class WorkflowsService {
     });
   }
 
+  async updateTitle(id: string, title: string) {
+    return this.prisma.workflowInstance.update({ where: { id }, data: { title } });
+  }
+
   // SRS 4.4.5: cannot skip a stage — only advance exactly one step at a time.
   async advance(id: string, actorId: string, comment?: string) {
     const workflow = await this.prisma.workflowInstance.findUnique({ where: { id } });

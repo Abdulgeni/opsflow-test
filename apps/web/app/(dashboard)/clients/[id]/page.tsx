@@ -153,6 +153,8 @@ export default function ClientDetailPage() {
             name: client.name,
             email: client.email,
             phone: client.phone ?? "",
+            type: client.type,
+            status: client.status,
           }}
           onSave={async (data) => {
             await updateClient(id, data);

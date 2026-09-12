@@ -72,4 +72,10 @@ export class UsersController {
   activateAccount(@Body("token") token: string, @Body("password") password: string) {
     return this.usersService.activateAccount(token, password);
   }
+
+  @Public()
+  @Post("request-password-reset")
+  requestPasswordReset(@Body("email") email: string) {
+    return this.usersService.requestPasswordReset(email);
+  }
 }

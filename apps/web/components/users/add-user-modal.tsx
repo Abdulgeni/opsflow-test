@@ -10,28 +10,37 @@ export function AddUserModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onAdd: (data: { name: string; email: string; department: string; role: Role }) => void;
+  onAdd: (data: { name: string; email: string; department: string; role: Role }) => Promise<void> | void;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [department, setDepartment] = useState("");
   const [role, setRole] = useState<Role>("Staff");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   if (!open) return null;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (!name || !email) {
       setError("Name and email are required");
       return;
     }
-    onAdd({ name, email, department, role });
-    setName("");
-    setEmail("");
-    setDepartment("");
-    setRole("Staff");
+    setLoading(true);
+    try {
+      await onAdd({ name, email, department, role });
+      setName("");
+      setEmail("");
+      setDepartment("");
+      setRole("Staff");
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to add user");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -96,15 +105,17 @@ export function AddUserModal({
             <button
               type="button"
               onClick={onClose}
-              className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors"
+              disabled={loading}
+              className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+              disabled={loading}
+              className="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              Add user
+              {loading ? "Adding…" : "Add user"}
             </button>
           </div>
         </form>

@@ -5,6 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchLinkOptions } from "@/lib/api/workflows";
 import { EntityPicker } from "@/components/shared/entity-picker";
 
+const TEMPLATES: Record<string, string[]> = {
+  "Custom": [],
+  "Lease Approval": ["Submitted", "Manager Review", "Finance Review", "Approved"],
+  "Maintenance Approval": ["Submitted", "Manager Review", "Approved"],
+  "Client Onboarding": ["Submitted", "Manager Review", "Finance Review", "Approved"],
+};
+
 export function CreateWorkflowModal({
   open,
   onClose,
@@ -85,6 +92,24 @@ export function CreateWorkflowModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-on-surface mb-1">Template</label>
+            <select
+              onChange={(e) => {
+                const preset = TEMPLATES[e.target.value];
+                if (preset && preset.length > 0) setStages(preset);
+              }}
+              className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm"
+            >
+              {Object.keys(TEMPLATES).map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+            <p className="text-xs text-on-surface-variant mt-1">
+              Pick a preset to pre-fill the stages, or choose Custom to define your own.
+            </p>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-on-surface mb-1">Title</label>
             <input

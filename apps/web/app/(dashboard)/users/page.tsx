@@ -93,7 +93,7 @@ export default function UsersPage() {
               User created: {lastActivationLink.email}
             </p>
             <p className="text-xs text-status-progress-text/80 mt-1">
-              Share this activation link with them to let them set a password.
+              An activation email has been sent to them. You can also copy the link below as a backup.
             </p>
           </div>
           <button

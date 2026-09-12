@@ -219,6 +219,7 @@ export function TopBar() {
                     localStorage.removeItem("opsflow_token");
                     localStorage.removeItem("opsflow_user");
                     document.cookie = "opsflow_token=; path=/; max-age=0";
+                    document.cookie = "opsflow_role=; path=/; max-age=0";
                   }}
                   className="text-sm text-status-negative-text hover:underline"
                 >

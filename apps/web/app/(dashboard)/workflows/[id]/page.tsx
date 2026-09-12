@@ -10,11 +10,13 @@ import {
   advanceWorkflow,
   rejectWorkflow,
   addWorkflowComment,
+  updateWorkflowTitle,
   ApiWorkflow,
   ApiTransition,
   ApiWorkflowComment,
 } from "@/lib/api/workflows";
 import { trackRecentView } from "@/lib/recent";
+import { EditWorkflowModal } from "@/components/workflows/edit-workflow-modal";
 
 type FullWorkflow = ApiWorkflow & { transitions: ApiTransition[]; comments: ApiWorkflowComment[] };
 
@@ -25,6 +27,7 @@ export default function WorkflowDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [commentText, setCommentText] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -42,7 +45,7 @@ export default function WorkflowDetailPage() {
 
   useEffect(() => {
     load();
-    
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -83,19 +86,16 @@ export default function WorkflowDetailPage() {
       setActionError(err instanceof Error ? err.message : "Failed to reject");
     }
   }
-  
 
-async function handlePostComment() {
-  console.log("handlePostComment called, text is:", commentText);
-  if (!commentText.trim()) return;
-  try {
-    const result = await addWorkflowComment(id, commentText.trim());
-    console.log("Comment posted successfully:", result);
-    setCommentText("");
-  } catch (err) {
-    console.error("Failed to post comment:", err);
+  async function handlePostComment() {
+    if (!commentText.trim()) return;
+    try {
+      const result = await addWorkflowComment(id, commentText.trim());
+      setCommentText("");
+    } catch (err) {
+      console.error("Failed to post comment:", err);
+    }
   }
-}
 
   if (loading) return <div className="h-40 bg-surface-container-low rounded animate-pulse" />;
   if (error || !wf) return <div className="text-sm text-status-negative-text">{error ?? "Workflow not found."}</div>;
@@ -113,6 +113,12 @@ async function handlePostComment() {
           <p className="text-sm text-on-surface-variant mt-1">Created {new Date(wf.createdAt).toLocaleDateString()}</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setEditOpen(true)}
+            className="border border-outline text-on-surface px-4 py-2 rounded-lg text-sm hover:bg-surface-container-low transition-colors"
+          >
+            Edit
+          </button>
           <button
             onClick={handleReject}
             className="border border-status-negative-text text-status-negative-text px-4 py-2 rounded-lg text-sm hover:bg-status-negative-bg transition-colors"
@@ -221,6 +227,19 @@ async function handlePostComment() {
           </div>
         </Card>
       </div>
+
+      {wf && (
+        <EditWorkflowModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          initial={{ title: wf.title }}
+          onSave={async (data) => {
+            await updateWorkflowTitle(id, data.title);
+            const updated = await fetchWorkflow(id);
+            setWf(updated);
+          }}
+        />
+      )}
     </div>
   );
 }

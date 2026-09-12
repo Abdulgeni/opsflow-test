@@ -10,12 +10,14 @@ export function EditClientModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onSave: (data: { name: string; email: string; phone: string }) => Promise<void>;
-  initial: { name: string; email: string; phone: string };
+  onSave: (data: { name: string; email: string; phone: string; type: string; status: string }) => Promise<void>;
+  initial: { name: string; email: string; phone: string; type: string; status: string };
 }) {
   const [name, setName] = useState(initial.name);
   const [email, setEmail] = useState(initial.email);
   const [phone, setPhone] = useState(initial.phone);
+  const [type, setType] = useState(initial.type);
+  const [status, setStatus] = useState(initial.status);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,7 +28,7 @@ export function EditClientModal({
     setError(null);
     setLoading(true);
     try {
-      await onSave({ name, email, phone });
+      await onSave({ name, email, phone, type, status });
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
@@ -75,6 +77,29 @@ export function EditClientModal({
               onChange={(e) => setPhone(e.target.value)}
               className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm focus:border-gold focus:ring-gold"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-on-surface mb-1">Type</label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm"
+            >
+              <option value="INDIVIDUAL">Individual</option>
+              <option value="ORGANIZATION">Organization</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-on-surface mb-1">Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm"
+            >
+              <option value="LEAD">Lead</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">

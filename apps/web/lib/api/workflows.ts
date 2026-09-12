@@ -54,6 +54,16 @@ export async function createWorkflow(data: { title: string; stages: string[]; li
   return res.json();
 }
 
+export async function updateWorkflowTitle(id: string, title: string) {
+  const res = await fetch(`${API_URL}/workflows/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ title }),
+  });
+  if (!res.ok) throw new Error("Failed to update workflow");
+  return res.json();
+}
+
 export async function advanceWorkflow(id: string, comment?: string) {
   const res = await fetch(`${API_URL}/workflows/${id}/advance`, {
     method: "POST",

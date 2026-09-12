@@ -84,7 +84,10 @@ export async function createClient(data: { name: string; type: "INDIVIDUAL" | "O
   return res.json();
 }
 
-export async function updateClient(id: string, data: { name: string; email: string; phone: string }) {
+export async function updateClient(
+  id: string,
+  data: { name: string; email: string; phone: string; type?: string; status?: string }
+) {
   const res = await fetch(`${API_URL}/clients/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...authHeaders() },

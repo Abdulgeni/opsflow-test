@@ -9,6 +9,7 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -31,12 +32,26 @@ export default function SignInPage() {
       localStorage.setItem("opsflow_token", data.accessToken);
 localStorage.setItem("opsflow_user", JSON.stringify(data.user));
 document.cookie = `opsflow_token=${data.accessToken}; path=/; max-age=28800`;
+document.cookie = `opsflow_role=${data.user.role}; path=/; max-age=28800`;
 router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-in failed");
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleForgotPassword() {
+    if (!email) {
+      setError("Enter your email above first, then click 'Forgot password?'");
+      return;
+    }
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/request-password-reset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    setResetMessage("If that email exists in our system, a reset link has been sent.");
   }
 
   return (
@@ -56,6 +71,12 @@ router.push("/dashboard");
           {error && (
             <div role="alert" className="mb-4 rounded-lg bg-status-negative-bg text-status-negative-text px-4 py-3 text-sm">
               {error}
+            </div>
+          )}
+
+          {resetMessage && (
+            <div className="mb-4 rounded-lg bg-status-progress-bg text-status-progress-text px-4 py-3 text-sm break-all">
+              {resetMessage}
             </div>
           )}
 
@@ -79,9 +100,13 @@ router.push("/dashboard");
                 <label htmlFor="password" className="block text-sm font-medium text-on-surface">
                   Password
                 </label>
-                <a href="#" className="text-sm text-on-surface-variant hover:text-gold transition-colors">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-sm text-on-surface-variant hover:text-gold transition-colors"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
               <div className="relative">
                 <input

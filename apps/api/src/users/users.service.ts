@@ -4,12 +4,16 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { EmailService } from "../email/email.service";
 import * as bcrypt from "bcrypt";
 import * as crypto from "crypto";
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private email: EmailService
+  ) {}
 
   async findAll() {
     return this.prisma.user.findMany({
@@ -75,6 +79,9 @@ export class UsersService {
       data: { token, userId: user.id, expiresAt },
     });
 
+    const activationLink = `${process.env.WEB_URL}/activate?token=${token}`;
+    await this.email.sendActivationEmail(user.email, user.name, activationLink);
+
     return { user, activationToken: token };
   }
 
@@ -112,6 +119,22 @@ export class UsersService {
     });
 
     return { success: true };
+  }
+
+  async requestPasswordReset(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) return { message: "If that email exists, a reset link has been generated." };
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60);
+
+    await this.prisma.activationToken.deleteMany({ where: { userId: user.id } });
+    await this.prisma.activationToken.create({ data: { token, userId: user.id, expiresAt } });
+
+    const resetLink = `${process.env.WEB_URL}/activate?token=${token}`;
+    await this.email.sendPasswordResetEmail(user.email, user.name, resetLink);
+
+    return { message: "If that email exists, a reset link has been sent." };
   }
 
   async activateAccount(token: string, password: string) {

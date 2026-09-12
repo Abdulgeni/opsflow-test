@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { WorkflowsService } from "./workflows.service";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Roles, RolesGuard } from "../auth/roles.guard";
@@ -42,6 +42,12 @@ export class WorkflowsController {
   @Roles("ADMIN")
   create(@Body() data: { title: string; stages: string[]; linkedEntityType?: string; linkedEntityId?: string }) {
     return this.workflowsService.create(data);
+  }
+
+  @Patch(":id")
+  @Roles("ADMIN", "MANAGER")
+  updateTitle(@Param("id") id: string, @Body("title") title: string) {
+    return this.workflowsService.updateTitle(id, title);
   }
 
   // SRS 4.4.4: only Admin/Manager can advance a stage.

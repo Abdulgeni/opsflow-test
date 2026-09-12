@@ -10,6 +10,7 @@ import { WorkflowsModule } from "./workflows/workflows.module";
 import { ExecutiveModule } from "./executive/executive.module";
 import { ReportsModule } from "./reports/reports.module";
 import { NotificationsModule } from "./notifications/notifications.module";
+import { EmailModule } from "./email/email.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { NotificationsModule } from "./notifications/notifications.module";
     ExecutiveModule,
     ReportsModule,
     NotificationsModule,
+    EmailModule,
   ],
 })
 export class AppModule {}
