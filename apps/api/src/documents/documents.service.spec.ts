@@ -24,8 +24,15 @@ describe("DocumentsService", () => {
     });
     testPropertyId = property.id;
 
-    const user = await prisma.user.findFirst({ where: { role: "ADMIN" } });
-    testUserId = user!.id;
+    const testUser = await prisma.user.create({
+      data: {
+        name: "Jest Document Test User",
+        email: `jest-document-user-${Date.now()}@example.com`,
+        role: "ADMIN",
+        status: "ACTIVE",
+      },
+    });
+    testUserId = testUser.id;
   });
 
   afterAll(async () => {
@@ -61,5 +68,6 @@ describe("DocumentsService", () => {
   afterAll(async () => {
     await prisma.documentVersion.deleteMany({ where: { documentId: createdId } }).catch(() => {});
     await prisma.document.delete({ where: { id: createdId } }).catch(() => {});
+    await prisma.user.delete({ where: { id: testUserId } }).catch(() => {});
   });
 });
