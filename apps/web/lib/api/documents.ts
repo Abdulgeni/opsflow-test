@@ -51,7 +51,11 @@ export async function createDocument(data: { title: string; category: string; li
   }
   return res.json();
 }
-export async function updateDocument(id: string, data: { title: string; category: string }) {
+
+export async function updateDocument(
+  id: string,
+  data: { title?: string; category?: string; linkedEntityType?: string; linkedEntityId?: string }
+) {
   const res = await fetch(`${API_URL}/documents/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...authHeaders() },

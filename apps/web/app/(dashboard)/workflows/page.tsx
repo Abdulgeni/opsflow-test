@@ -4,8 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { CreateWorkflowModal } from "@/components/workflows/create-workflow-modal";
-import { fetchWorkflows, createWorkflow, ApiWorkflow } from "@/lib/api/workflows";
+import { fetchWorkflows, createWorkflow, ApiWorkflow, WorkflowStage } from "@/lib/api/workflows";
 import { useToast } from "@/components/ui/toast";
+
+function stageName(s: string | WorkflowStage): string {
+  return typeof s === "string" ? s : s.name;
+}
 
 export default function WorkflowsPage() {
   const [workflows, setWorkflows] = useState<ApiWorkflow[]>([]);
@@ -31,7 +35,12 @@ export default function WorkflowsPage() {
     load();
   }, []);
 
-  async function handleCreate(data: { title: string; stages: string[]; linkedTo?: string }) {
+  async function handleCreate(data: {
+    title: string;
+    stages: { name: string; role: string }[];
+    linkedEntityType?: string;
+    linkedEntityId?: string;
+  }) {
     await createWorkflow(data);
     await load();
     show("Workflow created successfully");
@@ -99,7 +108,7 @@ export default function WorkflowsPage() {
                       </Link>
                     </td>
                     <td className="py-4 px-2 text-sm text-on-surface-variant">
-                      {wf.stages[wf.currentStageIndex]}
+                      {stageName(wf.stages[wf.currentStageIndex])}
                     </td>
                     <td className="py-4 px-2 text-sm text-on-surface-variant">
                       {new Date(wf.createdAt).toLocaleDateString()}

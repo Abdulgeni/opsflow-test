@@ -195,17 +195,17 @@ export default function PropertyDetailPage() {
       </div>
 
       {property && (
-        <EditPropertyModal
-          open={editOpen}
-          onClose={() => setEditOpen(false)}
-          initial={{ name: property.name, address: property.address, type: property.type }}
-          onSave={async (data) => {
-            await updateProperty(id, data);
-            const updated = await fetchProperty(id);
-            setProperty(updated);
-          }}
-        />
-      )}
+  <EditPropertyModal
+    open={editOpen}
+    onClose={() => setEditOpen(false)}
+    initial={{ name: property.name, address: property.address, type: property.type, status: property.status }}
+    onSave={async (data) => {
+      await updateProperty(id, data);
+      const updated = await fetchProperty(id);
+      setProperty(updated);
+    }}
+  />
+)}
     </div>
   );
 }

@@ -102,7 +102,10 @@ export async function unlinkClientFromProperty(occupancyId: string) {
   return res.json();
 }
 
-export async function updateProperty(id: string, data: { name: string; address: string; type: string }) {
+export async function updateProperty(
+  id: string,
+  data: { name: string; address: string; type: string; status?: string }
+) {
   const res = await fetch(`${API_URL}/properties/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...authHeaders() },

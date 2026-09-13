@@ -98,17 +98,22 @@ export default function DocumentDetailPage() {
       </div>
 
       {doc && (
-        <EditDocumentModal
-          open={editOpen}
-          onClose={() => setEditOpen(false)}
-          initial={{ title: doc.title, category: doc.category }}
-          onSave={async (data) => {
-            await updateDocument(id, data);
-            const updated = await fetchDocument(id);
-            setDoc(updated);
-          }}
-        />
-      )}
+  <EditDocumentModal
+    open={editOpen}
+    onClose={() => setEditOpen(false)}
+    initial={{
+      title: doc.title,
+      category: doc.category,
+      linkedEntityType: doc.linkedEntityType,
+      linkedEntityId: doc.linkedEntityId,
+    }}
+    onSave={async (data) => {
+      await updateDocument(id, data);
+      const updated = await fetchDocument(id);
+      setDoc(updated);
+    }}
+  />
+)}
     </div>
   );
 }

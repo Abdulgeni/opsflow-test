@@ -5,10 +5,15 @@ function authHeaders(): HeadersInit {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+export interface WorkflowStage {
+  name: string;
+  role: string;
+}
+
 export interface ApiWorkflow {
   id: string;
   title: string;
-  stages: string[];
+  stages: (string | WorkflowStage)[];
   currentStageIndex: number;
   createdAt: string;
 }
@@ -41,7 +46,12 @@ export async function fetchWorkflow(id: string): Promise<ApiWorkflow & { transit
   return res.json();
 }
 
-export async function createWorkflow(data: { title: string; stages: string[]; linkedEntityType?: string; linkedEntityId?: string }) {
+export async function createWorkflow(data: {
+  title: string;
+  stages: (string | WorkflowStage)[];
+  linkedEntityType?: string;
+  linkedEntityId?: string;
+}) {
   const res = await fetch(`${API_URL}/workflows`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },

@@ -10,12 +10,13 @@ export function EditPropertyModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onSave: (data: { name: string; address: string; type: string }) => Promise<void>;
-  initial: { name: string; address: string; type: string };
+  onSave: (data: { name: string; address: string; type: string; status: string }) => Promise<void>;
+  initial: { name: string; address: string; type: string; status: string };
 }) {
   const [name, setName] = useState(initial.name);
   const [address, setAddress] = useState(initial.address);
   const [type, setType] = useState(initial.type);
+  const [status, setStatus] = useState(initial.status);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,7 +27,7 @@ export function EditPropertyModal({
     setError(null);
     setLoading(true);
     try {
-      await onSave({ name, address, type });
+      await onSave({ name, address, type, status });
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
@@ -77,6 +78,19 @@ export function EditPropertyModal({
               <option value="Residential">Residential</option>
               <option value="Commercial">Commercial</option>
               <option value="Industrial">Industrial</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-on-surface mb-1">Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm"
+            >
+              <option value="AVAILABLE">Available</option>
+              <option value="OCCUPIED">Occupied</option>
+              <option value="UNDER_MAINTENANCE">Under Maintenance</option>
+              <option value="DECOMMISSIONED">Decommissioned</option>
             </select>
           </div>
 

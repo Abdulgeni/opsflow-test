@@ -40,7 +40,7 @@ export class WorkflowsController {
 
   @Post()
   @Roles("ADMIN")
-  create(@Body() data: { title: string; stages: string[]; linkedEntityType?: string; linkedEntityId?: string }) {
+  create(@Body() data: { title: string; stages: { name: string; role: string }[]; linkedEntityType?: string; linkedEntityId?: string }) {
     return this.workflowsService.create(data);
   }
 
@@ -50,17 +50,14 @@ export class WorkflowsController {
     return this.workflowsService.updateTitle(id, title);
   }
 
-  // SRS 4.4.4: only Admin/Manager can advance a stage.
   @Post(":id/advance")
-  @Roles("ADMIN", "MANAGER")
   advance(@Param("id") id: string, @Req() req: any, @Body("comment") comment?: string) {
-    return this.workflowsService.advance(id, req.user.id, comment);
+    return this.workflowsService.advance(id, req.user.id, req.user.role, comment);
   }
 
   @Post(":id/reject")
-  @Roles("ADMIN", "MANAGER")
   reject(@Param("id") id: string, @Req() req: any, @Body("comment") comment?: string) {
-    return this.workflowsService.reject(id, req.user.id, comment);
+    return this.workflowsService.reject(id, req.user.id, req.user.role, comment);
   }
 
   @Post(":id/comments")

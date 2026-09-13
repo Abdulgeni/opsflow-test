@@ -57,7 +57,7 @@ export class WorkflowsService {
     return null;
   }
 
-  async create(data: { title: string; stages: string[]; linkedEntityType?: string; linkedEntityId?: string }) {
+  async create(data: { title: string; stages: { name: string; role: string }[]; linkedEntityType?: string; linkedEntityId?: string }) {
     return this.prisma.workflowInstance.create({
       data: {
         title: data.title,
@@ -73,12 +73,24 @@ export class WorkflowsService {
     return this.prisma.workflowInstance.update({ where: { id }, data: { title } });
   }
 
+  // Normalizes old data (plain strings) so existing workflows don't break.
+  private normalizeStages(raw: any): { name: string; role: string }[] {
+    return (raw as any[]).map((s) =>
+      typeof s === "string" ? { name: s, role: "MANAGER" } : s
+    );
+  }
+
+  private canActOnStage(userRole: string, stageRole: string): boolean {
+    if (userRole === "ADMIN") return true; // Admin can always act
+    return userRole === stageRole;
+  }
+
   // SRS 4.4.5: cannot skip a stage — only advance exactly one step at a time.
-  async advance(id: string, actorId: string, comment?: string) {
+  async advance(id: string, actorId: string, actorRole: string, comment?: string) {
     const workflow = await this.prisma.workflowInstance.findUnique({ where: { id } });
     if (!workflow) throw new NotFoundException("Workflow not found");
 
-    const stages = workflow.stages as string[];
+    const stages = this.normalizeStages(workflow.stages);
     if (workflow.currentStageIndex >= stages.length - 1) {
       throw new BadRequestException({
         statusCode: 400,
@@ -87,8 +99,17 @@ export class WorkflowsService {
       });
     }
 
-    const fromStage = stages[workflow.currentStageIndex];
-    const toStage = stages[workflow.currentStageIndex + 1];
+    const currentStage = stages[workflow.currentStageIndex];
+    if (!this.canActOnStage(actorRole, currentStage.role)) {
+      throw new BadRequestException({
+        statusCode: 403,
+        code: "FORBIDDEN_STAGE_ROLE",
+        message: `Only ${currentStage.role} (or Admin) can advance the "${currentStage.name}" stage`,
+      });
+    }
+
+    const fromStage = currentStage.name;
+    const toStage = stages[workflow.currentStageIndex + 1].name;
 
     await this.prisma.workflowTransition.create({
       data: { workflowInstanceId: id, fromStage, toStage, actorId, comment },
@@ -100,19 +121,26 @@ export class WorkflowsService {
     });
 
     await this.notifications.create(actorId, `"${workflow.title}" advanced to "${toStage}"`);
-
     return updated;
   }
 
-  async reject(id: string, actorId: string, comment?: string) {
+  async reject(id: string, actorId: string, actorRole: string, comment?: string) {
     const workflow = await this.prisma.workflowInstance.findUnique({ where: { id } });
     if (!workflow) throw new NotFoundException("Workflow not found");
 
-    const stages = workflow.stages as string[];
-    const fromStage = stages[workflow.currentStageIndex];
+    const stages = this.normalizeStages(workflow.stages);
+    const currentStage = stages[workflow.currentStageIndex];
+
+    if (!this.canActOnStage(actorRole, currentStage.role)) {
+      throw new BadRequestException({
+        statusCode: 403,
+        code: "FORBIDDEN_STAGE_ROLE",
+        message: `Only ${currentStage.role} (or Admin) can reject at the "${currentStage.name}" stage`,
+      });
+    }
 
     await this.prisma.workflowTransition.create({
-      data: { workflowInstanceId: id, fromStage, toStage: "Rejected", actorId, comment },
+      data: { workflowInstanceId: id, fromStage: currentStage.name, toStage: "Rejected", actorId, comment },
     });
 
     return workflow;

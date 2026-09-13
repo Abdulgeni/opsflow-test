@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EntityPicker } from "@/components/shared/entity-picker";
 
 const CATEGORIES = ["Legal", "Property", "Finance", "Compliance"];
 
@@ -12,11 +13,13 @@ export function EditDocumentModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onSave: (data: { title: string; category: string }) => Promise<void>;
-  initial: { title: string; category: string };
+  onSave: (data: { title: string; category: string; linkedEntityType: string; linkedEntityId: string }) => Promise<void>;
+  initial: { title: string; category: string; linkedEntityType: string; linkedEntityId: string };
 }) {
   const [title, setTitle] = useState(initial.title);
   const [category, setCategory] = useState(initial.category);
+  const [linkedEntityType, setLinkedEntityType] = useState(initial.linkedEntityType);
+  const [linkedEntityId, setLinkedEntityId] = useState(initial.linkedEntityId);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +30,7 @@ export function EditDocumentModal({
     setError(null);
     setLoading(true);
     try {
-      await onSave({ title, category });
+      await onSave({ title, category, linkedEntityType, linkedEntityId });
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
@@ -69,6 +72,14 @@ export function EditDocumentModal({
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-on-surface mb-1">Linked to</label>
+            <EntityPicker
+              entityType={linkedEntityType}
+              entityId={linkedEntityId}
+              onChange={(type, id) => { setLinkedEntityType(type); setLinkedEntityId(id); }}
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-2">

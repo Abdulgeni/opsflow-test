@@ -28,6 +28,12 @@ export default function WorkflowDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [commentText, setCommentText] = useState("");
   const [editOpen, setEditOpen] = useState(false);
+  const [myRole, setMyRole] = useState<string>("");
+
+  useEffect(() => {
+    const stored = localStorage.getItem("opsflow_user");
+    if (stored) setMyRole(JSON.parse(stored).role);
+  }, []);
 
   async function load() {
     setLoading(true);
@@ -119,18 +125,28 @@ export default function WorkflowDetailPage() {
           >
             Edit
           </button>
-          <button
-            onClick={handleReject}
-            className="border border-status-negative-text text-status-negative-text px-4 py-2 rounded-lg text-sm hover:bg-status-negative-bg transition-colors"
-          >
-            Reject
-          </button>
-          <button
-            onClick={handleAdvance}
-            className="bg-charcoal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-container transition-colors"
-          >
-            Advance Stage
-          </button>
+          {(() => {
+            const currentStage = wf.stages[wf.currentStageIndex];
+            const requiredRole = typeof currentStage === "string" ? "MANAGER" : currentStage.role;
+            const canAct = myRole === "ADMIN" || myRole === requiredRole;
+            if (!canAct) return null;
+            return (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleReject}
+                  className="border border-status-negative-text text-status-negative-text px-4 py-2 rounded-lg text-sm hover:bg-status-negative-bg transition-colors"
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={handleAdvance}
+                  className="bg-charcoal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-container transition-colors"
+                >
+                  Advance Stage
+                </button>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -144,7 +160,8 @@ export default function WorkflowDetailPage() {
       <div className="bg-white rounded-lg border border-surface-container-highest shadow-card p-6 overflow-hidden">
         <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0 pb-1">
           <div className="flex items-center min-w-max md:min-w-0 md:w-full">
-            {wf.stages.map((stage, i) => {
+            {wf.stages.map((s: any, i) => {
+              const stage = typeof s === "string" ? s : s.name;
               const isDone = i < wf.currentStageIndex;
               const isActive = i === wf.currentStageIndex;
               return (
