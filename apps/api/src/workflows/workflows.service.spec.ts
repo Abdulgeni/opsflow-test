@@ -41,7 +41,14 @@ describe("WorkflowsService", () => {
   let createdId: string;
 
   it("creates a workflow starting at stage index 0 (CREATE)", async () => {
-    const wf = await service.create({ title: "Jest Test Workflow", stages: ["Submitted", "Review", "Approved"] });
+    const wf = await service.create({
+      title: "Jest Test Workflow",
+      stages: [
+        { name: "Submitted", role: "STAFF" },
+        { name: "Review", role: "MANAGER" },
+        { name: "Approved", role: "ADMIN" },
+      ],
+    });
     expect(wf.currentStageIndex).toBe(0);
     createdId = wf.id;
   });
@@ -52,13 +59,13 @@ describe("WorkflowsService", () => {
   });
 
   it("advances exactly one stage per call, never skipping (SRS 4.4.5)", async () => {
-    const advanced = await service.advance(createdId, testUserId);
+    const advanced = await service.advance(createdId, testUserId, "ADMIN");
     expect(advanced.currentStageIndex).toBe(1);
   });
 
   it("rejects advancing past the final stage with INVALID_TRANSITION", async () => {
-    await service.advance(createdId, testUserId); // now at index 2 (Approved, the final stage)
-    await expect(service.advance(createdId, testUserId)).rejects.toThrow();
+    await service.advance(createdId, testUserId, "ADMIN"); // now at index 2 (Approved, the final stage)
+    await expect(service.advance(createdId, testUserId, "ADMIN")).rejects.toThrow();
   });
 
   afterAll(async () => {
