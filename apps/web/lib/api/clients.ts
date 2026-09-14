@@ -1,9 +1,4 @@
-function authHeaders(): HeadersInit {
-  const token = typeof window !== "undefined" ? localStorage.getItem("opsflow_token") : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { apiFetch } from "./apiFetch";
 
 export interface ApiClient {
   id: string;
@@ -55,7 +50,7 @@ export async function fetchClients(params: {
       .filter(([, v]) => v !== undefined && v !== "" && v !== false)
       .map(([k, v]) => [k, String(v)]) as [string, string][]
   );
-  const res = await fetch(`${API_URL}/clients?${query}`, { headers: authHeaders() });
+  const res = await apiFetch(`/clients?${query}`);
   if (!res.ok) throw new Error("Failed to fetch clients");
   return res.json();
 }
@@ -66,15 +61,15 @@ export async function fetchClient(id: string): Promise<ApiClient & {
   linkedWorkflows: ApiWorkflow[];
   occupancyRecords: ApiOccupancyRecord[];
 }> {
-  const res = await fetch(`${API_URL}/clients/${id}`, { headers: authHeaders() });
+  const res = await apiFetch(`/clients/${id}`);
   if (!res.ok) throw new Error("Failed to fetch client");
   return res.json();
 }
 
 export async function createClient(data: { name: string; type: "INDIVIDUAL" | "ORGANIZATION"; email: string; phone?: string }) {
-  const res = await fetch(`${API_URL}/clients`, {
+  const res = await apiFetch(`/clients`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -88,9 +83,9 @@ export async function updateClient(
   id: string,
   data: { name: string; email: string; phone: string; type?: string; status?: string }
 ) {
-  const res = await fetch(`${API_URL}/clients/${id}`, {
+  const res = await apiFetch(`/clients/${id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Failed to update client");
@@ -98,9 +93,8 @@ export async function updateClient(
 }
 
 export async function unarchiveClient(id: string) {
-  const res = await fetch(`${API_URL}/clients/${id}/unarchive`, {
+  const res = await apiFetch(`/clients/${id}/unarchive`, {
     method: "PATCH",
-    headers: { ...authHeaders() },
   });
   if (!res.ok) throw new Error("Failed to restore client");
   return res.json();
