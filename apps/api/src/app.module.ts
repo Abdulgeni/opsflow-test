@@ -11,6 +11,7 @@ import { ExecutiveModule } from "./executive/executive.module";
 import { ReportsModule } from "./reports/reports.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { EmailModule } from "./email/email.module";
+import { LeasesModule } from "./leases/leases.module";     // ← NEW
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EmailModule } from "./email/email.module";
     ReportsModule,
     NotificationsModule,
     EmailModule,
+    LeasesModule,                                           // ← NEW
   ],
 })
 export class AppModule {}

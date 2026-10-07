@@ -18,6 +18,7 @@ enum Role {
   MANAGER
   STAFF
   EXECUTIVE
+  CLIENT      // ← NEW
 }
 
 enum UserStatus {
@@ -36,6 +37,10 @@ model User {
   status       UserStatus @default(PENDING)
   passwordHash String?
   createdAt    DateTime   @default(now())
+
+  // ← NEW: only populated for CLIENT-role users
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id])
 
   loginActivity   LoginActivity[]
   contactLogs     ContactLog[]
@@ -100,6 +105,7 @@ model Property {
 
   maintenanceRequests MaintenanceRequest[]
   occupancyRecords OccupancyRecord[]
+  leases           Lease[]        // ← NEW
 
   @@map("properties")
 }
@@ -128,6 +134,12 @@ enum ClientStatus {
   ARCHIVED
 }
 
+// ← NEW
+enum ClientRelationshipType {
+  TENANT
+  OWNER
+}
+
 model Client {
   id        String       @id @default(uuid())
   name      String
@@ -137,8 +149,13 @@ model Client {
   status    ClientStatus @default(LEAD)
   createdAt DateTime     @default(now())
 
+  // ← NEW
+  relationshipType ClientRelationshipType @default(TENANT)
+
   contactLogs ContactLog[]
   occupancyRecords OccupancyRecord[]
+  portalUsers      User[]      // ← NEW: users linked to this client record
+  leases           Lease[]     // ← NEW
 
   @@map("clients")
 }
@@ -276,4 +293,29 @@ model OccupancyRecord {
   notes      String?
 
   @@map("occupancy_records")
+}
+
+// ← NEW: Lease model
+enum LeaseStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+model Lease {
+  id           String      @id @default(uuid())
+  propertyId   String
+  property     Property    @relation(fields: [propertyId], references: [id])
+  clientId     String
+  client       Client      @relation(fields: [clientId], references: [id])
+  startDate    DateTime
+  endDate      DateTime
+  rentAmount   Float
+  status       LeaseStatus @default(PENDING)
+  renewalNotes String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("leases")
 }

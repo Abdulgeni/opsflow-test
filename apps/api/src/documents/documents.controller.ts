@@ -4,6 +4,8 @@ import { StorageService } from "./storage.service";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Roles, RolesGuard } from "../auth/roles.guard";
 
+const INTERNAL_ROLES = ["ADMIN", "MANAGER", "STAFF", "EXECUTIVE"];
+
 @Controller("documents")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class DocumentsController {
@@ -12,7 +14,29 @@ export class DocumentsController {
     private storageService: StorageService
   ) {}
 
+  // ─── Portal routes (CLIENT only) ───────────────────────────────
+  // Declared before the ":id" routes so the literal "mine" wins.
+
+  @Get("mine")
+  @Roles("CLIENT")
+  findMine(@Req() req: any) {
+    if (!req.user.clientId) return [];
+    return this.documentsService.findForPortalUser(req.user.clientId);
+  }
+
+  @Get("mine/:id/download-url")
+  @Roles("CLIENT")
+  async getMineDownloadUrl(@Param("id") id: string, @Req() req: any) {
+    await this.documentsService.assertPortalAccess(id, req.user.clientId);
+    const key = `documents/${id}`;
+    const url = await this.storageService.getDownloadUrl(key);
+    return { downloadUrl: url };
+  }
+
+  // ─── Internal routes (staff only) ──────────────────────────────
+
   @Get()
+  @Roles(...INTERNAL_ROLES)
   findAll(
     @Query("category") category?: string,
     @Query("linkedEntityId") linkedEntityId?: string,
@@ -22,6 +46,7 @@ export class DocumentsController {
   }
 
   @Get(":id")
+  @Roles(...INTERNAL_ROLES)
   findOne(@Param("id") id: string) {
     return this.documentsService.findOne(id);
   }
@@ -42,6 +67,7 @@ export class DocumentsController {
   }
 
   @Post(":id/upload-url")
+  @Roles(...INTERNAL_ROLES)
   async getUploadUrl(@Param("id") id: string, @Body("contentType") contentType: string) {
     const key = `documents/${id}`;
     const url = await this.storageService.getUploadUrl(key, contentType);
@@ -49,6 +75,7 @@ export class DocumentsController {
   }
 
   @Get(":id/download-url")
+  @Roles(...INTERNAL_ROLES)
   async getDownloadUrl(@Param("id") id: string) {
     const key = `documents/${id}`;
     const url = await this.storageService.getDownloadUrl(key);

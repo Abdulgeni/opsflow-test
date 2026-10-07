@@ -149,7 +149,7 @@ export const MOCK_WORKFLOWS: WorkflowSummary[] = [
 ];
 
 // ── Users ───────────────────────────────────────────────────
-export type Role = "Admin" | "Manager" | "Staff";
+export type Role = "Admin" | "Manager" | "Staff" | "Client";
 export type UserStatus = "Active" | "Deactivated";
 
 export interface OpsUser {
@@ -168,8 +168,8 @@ export const MOCK_USERS: OpsUser[] = [
 ];
 
 export const PERMISSION_MATRIX: Record<string, Record<Role, string>> = {
-  Properties: { Admin: "✓", Manager: "Edit only", Staff: "View only" },
-  Documents: { Admin: "✓", Manager: "✓", Staff: "View only" },
-  Clients: { Admin: "✓", Manager: "Edit only", Staff: "None" },
-  Workflows: { Admin: "✓", Manager: "View only", Staff: "None" },
+  Properties: { Admin: "✓", Manager: "Edit only", Staff: "View only", Client: "None" },
+  Documents: { Admin: "✓", Manager: "✓", Staff: "View only", Client: "Own only" },
+  Clients: { Admin: "✓", Manager: "Edit only", Staff: "None", Client: "None" },
+  Workflows: { Admin: "✓", Manager: "View only", Staff: "None", Client: "None" },
 };

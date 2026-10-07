@@ -45,6 +45,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        clientId: user.clientId,      // ← so the frontend can stash it if needed
       },
     };
   }

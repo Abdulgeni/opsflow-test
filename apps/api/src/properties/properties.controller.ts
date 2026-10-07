@@ -1,7 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { PropertiesService } from "./properties.service";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Roles, RolesGuard } from "../auth/roles.guard";
+
+// Internal roles only — CLIENT is deliberately excluded from every route here.
+// The portal reads property data through /leases/mine's `property` relation instead.
+const INTERNAL_ROLES = ["ADMIN", "MANAGER", "STAFF", "EXECUTIVE"];
 
 @Controller("properties")
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -9,6 +13,7 @@ export class PropertiesController {
   constructor(private propertiesService: PropertiesService) {}
 
   @Get()
+  @Roles(...INTERNAL_ROLES)
   findAll(
     @Query("status") status?: string,
     @Query("type") type?: string,
@@ -19,6 +24,7 @@ export class PropertiesController {
   }
 
   @Get(":id")
+  @Roles(...INTERNAL_ROLES)
   findOne(@Param("id") id: string) {
     return this.propertiesService.findOne(id);
   }
@@ -48,6 +54,7 @@ export class PropertiesController {
   }
 
   @Post(":id/maintenance")
+  @Roles(...INTERNAL_ROLES)
   createMaintenanceRequest(
     @Param("id") propertyId: string,
     @Body() data: { description: string; priority: "LOW" | "MEDIUM" | "HIGH" }

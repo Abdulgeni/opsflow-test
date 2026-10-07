@@ -54,11 +54,17 @@ export class UsersService {
     email: string;
     phone?: string;
     department?: string;
-    role: "ADMIN" | "MANAGER" | "STAFF" | "EXECUTIVE";
+    role: "ADMIN" | "MANAGER" | "STAFF" | "EXECUTIVE" | "CLIENT";
+    clientId?: string;
   }) {
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existing) {
       throw new BadRequestException("A user with this email already exists");
+    }
+
+    // If creating a CLIENT-role user, a linked Client record is required.
+    if (dto.role === "CLIENT" && !dto.clientId) {
+      throw new BadRequestException("A clientId is required when creating a CLIENT user");
     }
 
     const user = await this.prisma.user.create({
@@ -69,6 +75,7 @@ export class UsersService {
         department: dto.department,
         role: dto.role,
         status: "PENDING",
+        clientId: dto.role === "CLIENT" ? dto.clientId : null,
       },
     });
 
@@ -85,7 +92,10 @@ export class UsersService {
     return { user, activationToken: token };
   }
 
-  async updateRole(id: string, role: "ADMIN" | "MANAGER" | "STAFF" | "EXECUTIVE") {
+  async updateRole(
+    id: string,
+    role: "ADMIN" | "MANAGER" | "STAFF" | "EXECUTIVE" | "CLIENT"
+  ) {
     return this.prisma.user.update({ where: { id }, data: { role } });
   }
 

@@ -50,12 +50,19 @@ export default function UsersPage() {
     loadUsers();
   }, []);
 
-  async function handleAdd(data: { name: string; email: string; department: string; role: Role }) {
+  async function handleAdd(data: {
+    name: string;
+    email: string;
+    department: string;
+    role: Role;
+    clientId?: string;
+  }) {
     const result = await createUser({
       name: data.name,
       email: data.email,
       department: data.department,
       role: data.role.toUpperCase() as ApiUser["role"],
+      clientId: data.clientId,
     });
     const link = `${window.location.origin}/activate?token=${result.activationToken}`;
     setLastActivationLink({ email: data.email, link });

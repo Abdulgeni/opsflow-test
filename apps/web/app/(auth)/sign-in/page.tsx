@@ -30,10 +30,12 @@ export default function SignInPage() {
 
       const data = await res.json();
       localStorage.setItem("opsflow_token", data.accessToken);
-localStorage.setItem("opsflow_user", JSON.stringify(data.user));
-document.cookie = `opsflow_token=${data.accessToken}; path=/; max-age=28800`;
-document.cookie = `opsflow_role=${data.user.role}; path=/; max-age=28800`;
-router.push("/dashboard");
+      localStorage.setItem("opsflow_user", JSON.stringify(data.user));
+      document.cookie = `opsflow_token=${data.accessToken}; path=/; max-age=28800`;
+      document.cookie = `opsflow_role=${data.user.role}; path=/; max-age=28800`;
+
+      // ← the only change: route CLIENT users to the portal, staff to the dashboard
+      router.push(data.user.role === "CLIENT" ? "/portal" : "/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-in failed");
     } finally {

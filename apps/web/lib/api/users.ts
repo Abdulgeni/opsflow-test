@@ -10,9 +10,10 @@ export interface ApiUser {
   name: string;
   email: string;
   department: string | null;
-  role: "ADMIN" | "MANAGER" | "STAFF" | "EXECUTIVE";
+  role: "ADMIN" | "MANAGER" | "STAFF" | "EXECUTIVE" | "CLIENT";
   status: "ACTIVE" | "PENDING" | "DEACTIVATED";
   createdAt: string;
+  clientId?: string | null;
 }
 
 export async function fetchUsers(): Promise<ApiUser[]> {
@@ -25,7 +26,8 @@ export async function createUser(data: {
   name: string;
   email: string;
   department?: string;
-  role: "ADMIN" | "MANAGER" | "STAFF" | "EXECUTIVE";
+  role: "ADMIN" | "MANAGER" | "STAFF" | "EXECUTIVE" | "CLIENT";
+  clientId?: string;
 }) {
   const res = await fetch(`${API_URL}/users`, {
     method: "POST",

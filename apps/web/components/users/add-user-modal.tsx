@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Role } from "@/lib/mock-data";
+import { fetchClients, ApiClient } from "@/lib/api/clients";
 
 export function AddUserModal({
   open,
@@ -10,14 +11,34 @@ export function AddUserModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onAdd: (data: { name: string; email: string; department: string; role: Role }) => Promise<void> | void;
+  onAdd: (data: {
+    name: string;
+    email: string;
+    department: string;
+    role: Role;
+    clientId?: string;
+  }) => Promise<void> | void;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [department, setDepartment] = useState("");
   const [role, setRole] = useState<Role>("Staff");
+  const [clientId, setClientId] = useState("");
+  const [clients, setClients] = useState<ApiClient[]>([]);
+  const [clientsLoading, setClientsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Load clients lazily — only when the modal is open and role is Client.
+  useEffect(() => {
+    if (!open || role !== "Client") return;
+    if (clients.length > 0) return;
+    setClientsLoading(true);
+    fetchClients({})
+      .then(setClients)
+      .catch(() => setClients([]))
+      .finally(() => setClientsLoading(false));
+  }, [open, role, clients.length]);
 
   if (!open) return null;
 
@@ -28,13 +49,18 @@ export function AddUserModal({
       setError("Name and email are required");
       return;
     }
+    if (role === "Client" && !clientId) {
+      setError("Please select which client this portal user belongs to");
+      return;
+    }
     setLoading(true);
     try {
-      await onAdd({ name, email, department, role });
+      await onAdd({ name, email, department, role, clientId: role === "Client" ? clientId : undefined });
       setName("");
       setEmail("");
       setDepartment("");
       setRole("Staff");
+      setClientId("");
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add user");
@@ -85,21 +111,53 @@ export function AddUserModal({
               type="text"
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
-              className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm focus:border-gold focus:ring-gold"
+              disabled={role === "Client"}
+              className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm focus:border-gold focus:ring-gold disabled:bg-surface-container-low disabled:cursor-not-allowed"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-on-surface mb-1">Role</label>
             <select
               value={role}
-              onChange={(e) => setRole(e.target.value as Role)}
+              onChange={(e) => {
+                setRole(e.target.value as Role);
+                setClientId("");
+              }}
               className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm"
             >
               <option value="Admin">Admin</option>
               <option value="Manager">Manager</option>
               <option value="Staff">Staff</option>
+              <option value="Client">Client (portal access)</option>
             </select>
           </div>
+
+          {role === "Client" && (
+            <div>
+              <label className="block text-sm font-medium text-on-surface mb-1">
+                Linked client record
+              </label>
+              <select
+                required
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+                disabled={clientsLoading}
+                className="block w-full rounded-lg border border-surface-container-highest px-3 py-2 text-sm disabled:opacity-50"
+              >
+                <option value="">
+                  {clientsLoading ? "Loading clients…" : "Select a client…"}
+                </option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} — {c.email}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-on-surface-variant mt-1">
+                This portal user will only see leases and documents linked to this client.
+              </p>
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <button

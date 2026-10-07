@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class DocumentsService {
   constructor(private prisma: PrismaService) {}
+
+  // ─── Internal (staff) methods ──────────────────────────────────
 
   async findAll(params: { category?: string; linkedEntityId?: string; search?: string }) {
     const { category, linkedEntityId, search } = params;
@@ -38,6 +40,77 @@ export class DocumentsService {
     const linkedEntityName = await this.resolveEntityName(document.linkedEntityType, document.linkedEntityId);
 
     return { ...document, linkedEntityName };
+  }
+
+  // ─── Portal (CLIENT) methods ───────────────────────────────────
+
+  // Returns only documents this client is allowed to see:
+  //  - documents linked directly to their own Client record
+  //  - documents linked to any Property they hold a Lease on
+  async findForPortalUser(clientId: string) {
+    const leases = await this.prisma.lease.findMany({
+      where: { clientId },
+      select: { propertyId: true },
+    });
+    const propertyIds = leases.map((l) => l.propertyId);
+
+    const documents = await this.prisma.document.findMany({
+      where: {
+        OR: [
+          { linkedEntityType: "Client", linkedEntityId: clientId },
+          { linkedEntityType: "Property", linkedEntityId: { in: propertyIds } },
+        ],
+      },
+      include: { uploadedBy: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return Promise.all(
+      documents.map(async (doc) => ({
+        ...doc,
+        linkedEntityName: await this.resolveEntityName(doc.linkedEntityType, doc.linkedEntityId),
+      }))
+    );
+  }
+
+  // Throws if the client is not allowed to access the given document.
+  // Used by the /documents/mine/:id/download-url route before issuing a signed URL.
+  async assertPortalAccess(documentId: string, clientId: string): Promise<void> {
+    const doc = await this.prisma.document.findUnique({ where: { id: documentId } });
+    if (!doc) throw new NotFoundException("Document not found");
+
+    const hasAccess = await this.clientHasAccessToLinkedEntity(
+      clientId,
+      doc.linkedEntityType,
+      doc.linkedEntityId
+    );
+
+    if (!hasAccess) {
+      throw new ForbiddenException({
+        statusCode: 403,
+        code: "FORBIDDEN_NOT_LINKED",
+        message: "You can only access your own documents",
+      });
+    }
+  }
+
+  // ─── Shared helpers ────────────────────────────────────────────
+
+  private async clientHasAccessToLinkedEntity(
+    clientId: string,
+    linkedEntityType: string,
+    linkedEntityId: string
+  ): Promise<boolean> {
+    if (linkedEntityType === "Client") {
+      return linkedEntityId === clientId;
+    }
+    if (linkedEntityType === "Property") {
+      const lease = await this.prisma.lease.findFirst({
+        where: { clientId, propertyId: linkedEntityId },
+      });
+      return lease !== null;
+    }
+    return false;
   }
 
   private async resolveEntityName(type: string, id: string): Promise<string | null> {

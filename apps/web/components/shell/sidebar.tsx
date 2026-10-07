@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: "▦" },
   { label: "Properties", href: "/properties", icon: "▤" },
   { label: "Clients", href: "/clients", icon: "◐" },
+  { label: "Leases", href: "/leases", icon: "▣" },
   { label: "Documents", href: "/documents", icon: "▥" },
   { label: "Workflows", href: "/workflows", icon: "⟳" },
   { label: "Users", href: "/users", icon: "◉" },
