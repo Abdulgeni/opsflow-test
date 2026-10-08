@@ -1,13 +1,19 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { Resend } from "resend";
 
 @Injectable()
 export class EmailService {
+  private readonly logger = new Logger(EmailService.name);
   private resend = new Resend(process.env.RESEND_API_KEY);
 
+  // Change this once you've verified a domain in Resend.
+  // Until then, onboarding@resend.dev only sends to the Resend account owner's email.
+  private readonly fromAddress =
+    process.env.EMAIL_FROM ?? "OpsFlow <onboarding@resend.dev>";
+
   async sendActivationEmail(to: string, name: string, activationLink: string) {
-    await this.resend.emails.send({
-      from: "OpsFlow <onboarding@resend.dev>",
+    const { data, error } = await this.resend.emails.send({
+      from: this.fromAddress,
       to,
       subject: "Activate your OpsFlow account",
       html: `
@@ -21,11 +27,21 @@ export class EmailService {
         </div>
       `,
     });
+
+    if (error) {
+      this.logger.error(
+        `Failed to send activation email to ${to}: ${JSON.stringify(error)}`
+      );
+      throw new Error(`Email delivery failed: ${error.message}`);
+    }
+
+    this.logger.log(`Activation email sent to ${to} (id: ${data?.id})`);
+    return data;
   }
 
   async sendPasswordResetEmail(to: string, name: string, resetLink: string) {
-    await this.resend.emails.send({
-      from: "OpsFlow <onboarding@resend.dev>",
+    const { data, error } = await this.resend.emails.send({
+      from: this.fromAddress,
       to,
       subject: "Reset your OpsFlow password",
       html: `
@@ -39,5 +55,15 @@ export class EmailService {
         </div>
       `,
     });
+
+    if (error) {
+      this.logger.error(
+        `Failed to send password reset email to ${to}: ${JSON.stringify(error)}`
+      );
+      throw new Error(`Email delivery failed: ${error.message}`);
+    }
+
+    this.logger.log(`Password reset email sent to ${to} (id: ${data?.id})`);
+    return data;
   }
 }
