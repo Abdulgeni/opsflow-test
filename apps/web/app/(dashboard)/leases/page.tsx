@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { AddLeaseModal } from "@/components/leases/add-lease-modal";
-import { fetchLeases, createLease, ApiLease } from "@/lib/api/leases";
+import { EditLeaseModal } from "@/components/leases/edit-lease-modal";
+import { fetchLeases, createLease, updateLease, ApiLease } from "@/lib/api/leases";
 import { useToast } from "@/components/ui/toast";
 
 type Tone = "positive" | "progress" | "warning" | "inactive" | "negative";
@@ -32,6 +33,7 @@ export default function LeasesPage() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingLease, setEditingLease] = useState<ApiLease | null>(null);
   const { show } = useToast();
 
   async function load() {
@@ -122,12 +124,12 @@ export default function LeasesPage() {
 
         {!loading && !error && leases.length > 0 && (
           <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
-            <table className="w-full text-left border-collapse min-w-[720px]">
+            <table className="w-full text-left border-collapse min-w-[760px]">
               <thead>
                 <tr className="border-b border-surface-container-highest bg-surface-container-low/50">
-                  {["Property", "Client", "Term", "Rent", "Status"].map((h) => (
+                  {["Property", "Client", "Term", "Rent", "Status", ""].map((h, i) => (
                     <th
-                      key={h}
+                      key={i}
                       className="py-4 px-2 text-xs font-medium text-on-surface-variant uppercase tracking-wide"
                     >
                       {h}
@@ -158,6 +160,16 @@ export default function LeasesPage() {
                     <td className="py-4 px-2">
                       <Badge tone={leaseStatusTone(l.status)}>{l.status}</Badge>
                     </td>
+                    <td className="py-4 px-2">
+                      <button
+                        onClick={() => setEditingLease(l)}
+                        className="text-gold hover:underline text-sm"
+                        aria-label="Edit lease"
+                        title="Edit lease"
+                      >
+                        ✏️
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -167,6 +179,25 @@ export default function LeasesPage() {
       </Card>
 
       <AddLeaseModal open={modalOpen} onClose={() => setModalOpen(false)} onAdd={handleAdd} />
+
+      {editingLease && (
+        <EditLeaseModal
+          open={!!editingLease}
+          onClose={() => setEditingLease(null)}
+          initial={{
+            startDate: editingLease.startDate,
+            endDate: editingLease.endDate,
+            rentAmount: editingLease.rentAmount,
+            status: editingLease.status,
+            renewalNotes: editingLease.renewalNotes || "",
+          }}
+          onSave={async (data) => {
+            await updateLease(editingLease.id, data);
+            await load();
+            show("Lease updated successfully");
+          }}
+        />
+      )}
     </div>
   );
 }

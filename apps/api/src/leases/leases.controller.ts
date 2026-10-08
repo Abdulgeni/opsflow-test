@@ -42,6 +42,14 @@ export class LeasesController {
     return this.leasesService.findOne(id, req.user);
   }
 
+  // Documents linked to this lease's property.
+  // Reuses findOne's ownership check so a CLIENT can only fetch docs for their own lease.
+  @Get(":id/documents")
+  async getLeaseDocuments(@Param("id") id: string, @Req() req: any) {
+    const lease = await this.leasesService.findOne(id, req.user);
+    return this.leasesService.findLinkedDocuments(lease.propertyId);
+  }
+
   @Post()
   @Roles("ADMIN", "MANAGER")
   create(

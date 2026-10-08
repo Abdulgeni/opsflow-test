@@ -44,6 +44,22 @@ export class LeasesService {
     return lease;
   }
 
+  // Documents linked to the property this lease is on.
+  // Caller is responsible for checking the user is allowed to see this lease first.
+  async findLinkedDocuments(propertyId: string) {
+    return this.prisma.document.findMany({
+      where: { linkedEntityType: "Property", linkedEntityId: propertyId },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        version: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
   async create(data: {
     propertyId: string;
     clientId: string;
