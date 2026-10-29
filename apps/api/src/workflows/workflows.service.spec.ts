@@ -15,7 +15,7 @@ describe("WorkflowsService", () => {
       providers: [
         WorkflowsService,
         PrismaService,
-        { provide: WorkflowsGateway, useValue: { broadcastNewComment: jest.fn() } },
+        { provide: WorkflowsGateway, useValue: { broadcastNewComment: jest.fn(), broadcastWorkflowUpdated: jest.fn() } },
         { provide: NotificationsService, useValue: { create: jest.fn() } },
       ],
     }).compile();
