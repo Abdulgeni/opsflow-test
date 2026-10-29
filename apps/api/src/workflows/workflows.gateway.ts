@@ -1,10 +1,4 @@
-import {
-  WebSocketGateway,
-  WebSocketServer,
-  SubscribeMessage,
-  MessageBody,
-  ConnectedSocket,
-} from "@nestjs/websockets";
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 
 @WebSocketGateway({ cors: { origin: process.env.WEB_URL ?? "http://localhost:3000" } })
@@ -14,6 +8,8 @@ export class WorkflowsGateway {
 
   @SubscribeMessage("joinWorkflow")
   handleJoin(@MessageBody() workflowId: string, @ConnectedSocket() client: Socket) {
+    const user = client.data.user;
+    if (!user || user.role === "CLIENT" || typeof workflowId !== "string") return;
     client.join(`workflow:${workflowId}`);
   }
 
@@ -22,7 +18,11 @@ export class WorkflowsGateway {
     client.leave(`workflow:${workflowId}`);
   }
 
-  broadcastNewComment(workflowId: string, comment: any) {
+  broadcastNewComment(workflowId: string, comment: unknown) {
     this.server.to(`workflow:${workflowId}`).emit("comment:new", comment);
+  }
+
+  broadcastWorkflowUpdated(workflowId: string) {
+    this.server.to(`workflow:${workflowId}`).emit("workflow:updated", { id: workflowId });
   }
 }
