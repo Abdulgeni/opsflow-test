@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../apps/api/src/generated/prisma"
@@ -18,7 +16,7 @@ enum Role {
   MANAGER
   STAFF
   EXECUTIVE
-  CLIENT      // ← NEW
+  CLIENT
 }
 
 enum UserStatus {
@@ -38,7 +36,6 @@ model User {
   passwordHash String?
   createdAt    DateTime   @default(now())
 
-  // ← NEW: only populated for CLIENT-role users
   clientId String?
   client   Client? @relation(fields: [clientId], references: [id])
 
@@ -50,8 +47,22 @@ model User {
   workflowComments    WorkflowComment[]
   executiveNotes ExecutiveNote[]
   notifications Notification[]
+  pushTokens    PushToken[]
 
   @@map("users")
+}
+
+model PushToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("push_tokens")
 }
 
 model ActivationToken {
@@ -62,7 +73,6 @@ model ActivationToken {
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
-
   @@map("activation_tokens")
 }
 
@@ -73,7 +83,6 @@ model LoginActivity {
   timestamp DateTime @default(now())
   success   Boolean
   ipAddress String
-
   @@map("login_activity")
 }
 
@@ -100,13 +109,10 @@ model Property {
   archivedAt DateTime?
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
-
   statusBeforeMaintenance PropertyStatus?
-
   maintenanceRequests MaintenanceRequest[]
   occupancyRecords OccupancyRecord[]
-  leases           Lease[]        // ← NEW
-
+  leases           Lease[]
   @@map("properties")
 }
 
@@ -118,7 +124,6 @@ model MaintenanceRequest {
   status      MaintenanceRequestStatus  @default(OPEN)
   createdAt   DateTime                  @default(now())
   resolvedAt  DateTime?
-
   @@map("maintenance_requests")
 }
 
@@ -134,7 +139,6 @@ enum ClientStatus {
   ARCHIVED
 }
 
-// ← NEW
 enum ClientRelationshipType {
   TENANT
   OWNER
@@ -148,15 +152,11 @@ model Client {
   phone     String?
   status    ClientStatus @default(LEAD)
   createdAt DateTime     @default(now())
-
-  // ← NEW
   relationshipType ClientRelationshipType @default(TENANT)
-
   contactLogs ContactLog[]
   occupancyRecords OccupancyRecord[]
-  portalUsers      User[]      // ← NEW: users linked to this client record
-  leases           Lease[]     // ← NEW
-
+  portalUsers      User[]
+  leases           Lease[]
   @@map("clients")
 }
 
@@ -175,7 +175,6 @@ model ContactLog {
   createdById String
   createdBy   User           @relation(fields: [createdById], references: [id])
   createdAt   DateTime       @default(now())
-
   @@map("contact_logs")
 }
 
@@ -183,15 +182,13 @@ model Document {
   id           String   @id @default(uuid())
   title        String
   category     String
-  linkedEntityType String   // "Property" | "Client"
+  linkedEntityType String
   linkedEntityId   String
   uploadedById String
   uploadedBy   User     @relation(fields: [uploadedById], references: [id])
   version      Int      @default(1)
   createdAt    DateTime @default(now())
-
   versions DocumentVersion[]
-
   @@map("documents")
 }
 
@@ -202,7 +199,6 @@ model DocumentVersion {
   versionNumber Int
   note          String?
   createdAt     DateTime @default(now())
-
   @@map("document_versions")
 }
 
@@ -211,13 +207,11 @@ model WorkflowInstance {
   title            String
   stages           Json
   currentStageIndex Int     @default(0)
-  linkedEntityType String?  // "Property" | "Client"
+  linkedEntityType String?
   linkedEntityId   String?
   createdAt        DateTime @default(now())
-
   transitions WorkflowTransition[]
   comments    WorkflowComment[]
-
   @@map("workflow_instances")
 }
 
@@ -231,7 +225,6 @@ model WorkflowTransition {
   actor              User             @relation(fields: [actorId], references: [id])
   comment            String?
   createdAt          DateTime         @default(now())
-
   @@map("workflow_transitions")
 }
 
@@ -243,7 +236,6 @@ model WorkflowComment {
   author             User             @relation(fields: [authorId], references: [id])
   body               String
   createdAt          DateTime         @default(now())
-
   @@map("workflow_comments")
 }
 
@@ -254,7 +246,6 @@ model ExecutiveNote {
   author    User     @relation(fields: [authorId], references: [id])
   note      String
   createdAt DateTime @default(now())
-
   @@map("executive_notes")
 }
 
@@ -266,7 +257,6 @@ model ReportSnapshot {
   openWorkflows  Int
   documents      Int
   capturedAt     DateTime @default(now())
-
   @@map("report_snapshots")
 }
 
@@ -277,11 +267,9 @@ model Notification {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-
   @@map("notifications")
 }
 
-// New model: OccupancyRecord
 model OccupancyRecord {
   id         String    @id @default(uuid())
   propertyId String
@@ -291,11 +279,9 @@ model OccupancyRecord {
   startDate  DateTime  @default(now())
   endDate    DateTime?
   notes      String?
-
   @@map("occupancy_records")
 }
 
-// ← NEW: Lease model
 enum LeaseStatus {
   PENDING
   ACTIVE
@@ -316,6 +302,5 @@ model Lease {
   renewalNotes String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-
   @@map("leases")
 }
