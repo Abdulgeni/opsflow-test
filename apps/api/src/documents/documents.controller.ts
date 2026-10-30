@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from
 import { DocumentsService } from "./documents.service";
 import { StorageService } from "./storage.service";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
-import { Roles, RolesGuard } from "../auth/roles.guard";
+import { AllowClient, Roles, RolesGuard } from "../auth/roles.guard";
 
 const INTERNAL_ROLES = ["ADMIN", "MANAGER", "STAFF", "EXECUTIVE"];
 
@@ -13,9 +13,6 @@ export class DocumentsController {
     private documentsService: DocumentsService,
     private storageService: StorageService
   ) {}
-
-  // ─── Portal routes (CLIENT only) ───────────────────────────────
-  // Declared before the ":id" routes so the literal "mine" wins.
 
   @Get("mine")
   @Roles("CLIENT")
@@ -32,8 +29,6 @@ export class DocumentsController {
     const url = await this.storageService.getDownloadUrl(key);
     return { downloadUrl: url };
   }
-
-  // ─── Internal routes (staff only) ──────────────────────────────
 
   @Get()
   @Roles(...INTERNAL_ROLES)
@@ -74,6 +69,7 @@ export class DocumentsController {
     return { uploadUrl: url, key };
   }
 
+  // The staff download route. A CLIENT cannot reach this because the global guard blocks them.
   @Get(":id/download-url")
   @Roles(...INTERNAL_ROLES)
   async getDownloadUrl(@Param("id") id: string) {

@@ -1,24 +1,13 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { LeasesService } from "./leases.service";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
-import { Roles, RolesGuard } from "../auth/roles.guard";
+import { AllowClient, Roles, RolesGuard } from "../auth/roles.guard";
 
 @Controller("leases")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class LeasesController {
   constructor(private leasesService: LeasesService) {}
 
-  // Staff view — internal roles only, CLIENT is explicitly excluded.
   @Get()
   @Roles("ADMIN", "MANAGER", "STAFF")
   findAll(
@@ -29,7 +18,6 @@ export class LeasesController {
     return this.leasesService.findAll({ propertyId, clientId, status });
   }
 
-  // Portal view — CLIENT role only, automatically scoped to their own record.
   @Get("mine")
   @Roles("CLIENT")
   findMine(@Req() req: any) {
@@ -38,13 +26,13 @@ export class LeasesController {
   }
 
   @Get(":id")
+  @AllowClient()
   findOne(@Param("id") id: string, @Req() req: any) {
     return this.leasesService.findOne(id, req.user);
   }
 
-  // Documents linked to this lease's property.
-  // Reuses findOne's ownership check so a CLIENT can only fetch docs for their own lease.
   @Get(":id/documents")
+  @AllowClient()
   async getLeaseDocuments(@Param("id") id: string, @Req() req: any) {
     const lease = await this.leasesService.findOne(id, req.user);
     return this.leasesService.findLinkedDocuments(lease.propertyId);
@@ -53,14 +41,7 @@ export class LeasesController {
   @Post()
   @Roles("ADMIN", "MANAGER")
   create(
-    @Body()
-    data: {
-      propertyId: string;
-      clientId: string;
-      startDate: string;
-      endDate: string;
-      rentAmount: number;
-    }
+    @Body() data: { propertyId: string; clientId: string; startDate: string; endDate: string; rentAmount: number; }
   ) {
     return this.leasesService.create(data);
   }
