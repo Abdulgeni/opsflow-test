@@ -11,6 +11,7 @@ export interface WorkflowStage {
 }
 
 export interface ApiWorkflow {
+  rejected?: boolean;
   id: string;
   title: string;
   stages: (string | WorkflowStage)[];

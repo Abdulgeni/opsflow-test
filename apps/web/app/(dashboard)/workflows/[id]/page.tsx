@@ -128,7 +128,7 @@ export default function WorkflowDetailPage() {
           {(() => {
             const currentStage = wf.stages[wf.currentStageIndex];
             const requiredRole = typeof currentStage === "string" ? "MANAGER" : currentStage.role;
-            const canAct = myRole === "ADMIN" || myRole === requiredRole;
+            const canAct = (myRole === "ADMIN" || myRole === requiredRole) && !wf.rejected;
             if (!canAct) return null;
             return (
               <div className="flex gap-2">
