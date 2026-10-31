@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { rejectedWorkflowIds, workflowCounts } from "../workflows/workflow-status";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
@@ -6,30 +7,21 @@ export class ExecutiveService {
   constructor(private prisma: PrismaService) {}
 
   async getSummary() {
-    const [propertiesCount, activeClientsCount, documentsCount, workflows] = await Promise.all([
+    const [propertiesCount, activeClientsCount, documentsCount, workflows, rejected] = await Promise.all([
       this.prisma.property.count({ where: { archivedAt: null } }),
       this.prisma.client.count({ where: { status: "ACTIVE" } }),
       this.prisma.document.count(),
       this.prisma.workflowInstance.findMany(),
+      rejectedWorkflowIds(this.prisma),
     ]);
-
-    const openWorkflows = workflows.filter((wf) => {
-      const stages = wf.stages as string[];
-      return wf.currentStageIndex < stages.length - 1;
-    }).length;
-
-    const completed = workflows.filter((wf) => {
-      const stages = wf.stages as string[];
-      return wf.currentStageIndex === stages.length - 1;
-    }).length;
-
-    const completionRate = workflows.length > 0 ? Math.round((completed / workflows.length) * 100) : 0;
-
+    const counts = workflowCounts(workflows, rejected);
+    const completionRate = counts.total > 0 ? Math.round((counts.completed / counts.total) * 100) : 0;
     return {
       properties: propertiesCount,
       activeClients: activeClientsCount,
       documents: documentsCount,
-      openWorkflows,
+      openWorkflows: counts.open,
+      rejectedWorkflows: counts.rejected,
       completionRate,
     };
   }

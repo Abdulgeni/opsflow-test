@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
+import { rejectedWorkflowIds, workflowCounts } from "../workflows/workflow-status";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
@@ -18,27 +19,17 @@ export class ReportsSnapshotService {
   }
 
   async captureNow() {
-    const [properties, activeClients, documents, workflows] = await Promise.all([
+    const [properties, activeClients, documents, workflows, rejected] = await Promise.all([
       this.prisma.property.count({ where: { archivedAt: null } }),
       this.prisma.client.count({ where: { status: "ACTIVE" } }),
       this.prisma.document.count(),
       this.prisma.workflowInstance.findMany(),
+      rejectedWorkflowIds(this.prisma),
     ]);
-
-    const openWorkflows = workflows.filter((wf) => {
-      const stages = wf.stages as string[];
-      return wf.currentStageIndex < stages.length - 1;
-    }).length;
-
-    const completed = workflows.filter((wf) => {
-      const stages = wf.stages as string[];
-      return wf.currentStageIndex === stages.length - 1;
-    }).length;
-
-    const completionRate = workflows.length > 0 ? Math.round((completed / workflows.length) * 100) : 0;
-
+    const counts = workflowCounts(workflows, rejected);
+    const completionRate = counts.total > 0 ? Math.round((counts.completed / counts.total) * 100) : 0;
     return this.prisma.reportSnapshot.create({
-      data: { properties, activeClients, documents, openWorkflows, completionRate },
+      data: { properties, activeClients, documents, openWorkflows: counts.open, completionRate },
     });
   }
 
