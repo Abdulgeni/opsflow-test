@@ -261,12 +261,16 @@ model ReportSnapshot {
 }
 
 model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  message          String
+  isRead           Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  linkedEntityType String?
+  linkedEntityId   String?
+
+  @@index([userId, isRead])
   @@map("notifications")
 }
 

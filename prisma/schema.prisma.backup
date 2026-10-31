@@ -1,0 +1,306 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../apps/api/src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  STAFF
+  EXECUTIVE
+  CLIENT
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING
+  DEACTIVATED
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  phone        String?
+  department   String?
+  role         Role
+  status       UserStatus @default(PENDING)
+  passwordHash String?
+  createdAt    DateTime   @default(now())
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id])
+
+  loginActivity   LoginActivity[]
+  contactLogs     ContactLog[]
+  activationToken ActivationToken?
+  documentsUploaded Document[]
+  workflowTransitions WorkflowTransition[]
+  workflowComments    WorkflowComment[]
+  executiveNotes ExecutiveNote[]
+  notifications Notification[]
+  pushTokens    PushToken[]
+
+  @@map("users")
+}
+
+model PushToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("push_tokens")
+}
+
+model ActivationToken {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  @@map("activation_tokens")
+}
+
+model LoginActivity {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  timestamp DateTime @default(now())
+  success   Boolean
+  ipAddress String
+  @@map("login_activity")
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  OCCUPIED
+  UNDER_MAINTENANCE
+  DECOMMISSIONED
+}
+
+enum MaintenanceRequestStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+model Property {
+  id         String         @id @default(uuid())
+  name       String
+  address    String
+  type       String
+  size       Float?
+  status     PropertyStatus @default(AVAILABLE)
+  archivedAt DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  statusBeforeMaintenance PropertyStatus?
+  maintenanceRequests MaintenanceRequest[]
+  occupancyRecords OccupancyRecord[]
+  leases           Lease[]
+  @@map("properties")
+}
+
+model MaintenanceRequest {
+  id          String                    @id @default(uuid())
+  propertyId  String
+  property    Property                  @relation(fields: [propertyId], references: [id])
+  description String
+  status      MaintenanceRequestStatus  @default(OPEN)
+  createdAt   DateTime                  @default(now())
+  resolvedAt  DateTime?
+  @@map("maintenance_requests")
+}
+
+enum ClientType {
+  INDIVIDUAL
+  ORGANIZATION
+}
+
+enum ClientStatus {
+  LEAD
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum ClientRelationshipType {
+  TENANT
+  OWNER
+}
+
+model Client {
+  id        String       @id @default(uuid())
+  name      String
+  type      ClientType
+  email     String       @unique
+  phone     String?
+  status    ClientStatus @default(LEAD)
+  createdAt DateTime     @default(now())
+  relationshipType ClientRelationshipType @default(TENANT)
+  contactLogs ContactLog[]
+  occupancyRecords OccupancyRecord[]
+  portalUsers      User[]
+  leases           Lease[]
+  @@map("clients")
+}
+
+enum ContactLogType {
+  CALL
+  MEETING
+  EMAIL
+}
+
+model ContactLog {
+  id          String         @id @default(uuid())
+  clientId    String
+  client      Client         @relation(fields: [clientId], references: [id])
+  type        ContactLogType @default(CALL)
+  notes       String
+  createdById String
+  createdBy   User           @relation(fields: [createdById], references: [id])
+  createdAt   DateTime       @default(now())
+  @@map("contact_logs")
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  title        String
+  category     String
+  linkedEntityType String
+  linkedEntityId   String
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  version      Int      @default(1)
+  createdAt    DateTime @default(now())
+  versions DocumentVersion[]
+  @@map("documents")
+}
+
+model DocumentVersion {
+  id            String   @id @default(uuid())
+  documentId    String
+  document      Document @relation(fields: [documentId], references: [id])
+  versionNumber Int
+  note          String?
+  createdAt     DateTime @default(now())
+  @@map("document_versions")
+}
+
+model WorkflowInstance {
+  id               String   @id @default(uuid())
+  title            String
+  stages           Json
+  currentStageIndex Int     @default(0)
+  linkedEntityType String?
+  linkedEntityId   String?
+  createdAt        DateTime @default(now())
+  transitions WorkflowTransition[]
+  comments    WorkflowComment[]
+  @@map("workflow_instances")
+}
+
+model WorkflowTransition {
+  id                 String           @id @default(uuid())
+  workflowInstanceId String
+  workflowInstance   WorkflowInstance @relation(fields: [workflowInstanceId], references: [id])
+  fromStage          String
+  toStage            String
+  actorId            String
+  actor              User             @relation(fields: [actorId], references: [id])
+  comment            String?
+  createdAt          DateTime         @default(now())
+  @@map("workflow_transitions")
+}
+
+model WorkflowComment {
+  id                 String           @id @default(uuid())
+  workflowInstanceId String
+  workflowInstance   WorkflowInstance @relation(fields: [workflowInstanceId], references: [id])
+  authorId           String
+  author             User             @relation(fields: [authorId], references: [id])
+  body               String
+  createdAt          DateTime         @default(now())
+  @@map("workflow_comments")
+}
+
+model ExecutiveNote {
+  id        String   @id @default(uuid())
+  linkedTo  String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  note      String
+  createdAt DateTime @default(now())
+  @@map("executive_notes")
+}
+
+model ReportSnapshot {
+  id             String   @id @default(uuid())
+  completionRate Int
+  properties     Int
+  activeClients  Int
+  openWorkflows  Int
+  documents      Int
+  capturedAt     DateTime @default(now())
+  @@map("report_snapshots")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@map("notifications")
+}
+
+model OccupancyRecord {
+  id         String    @id @default(uuid())
+  propertyId String
+  property   Property  @relation(fields: [propertyId], references: [id])
+  clientId   String
+  client     Client    @relation(fields: [clientId], references: [id])
+  startDate  DateTime  @default(now())
+  endDate    DateTime?
+  notes      String?
+  @@map("occupancy_records")
+}
+
+enum LeaseStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+model Lease {
+  id           String      @id @default(uuid())
+  propertyId   String
+  property     Property    @relation(fields: [propertyId], references: [id])
+  clientId     String
+  client       Client      @relation(fields: [clientId], references: [id])
+  startDate    DateTime
+  endDate      DateTime
+  rentAmount   Float
+  status       LeaseStatus @default(PENDING)
+  renewalNotes String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  @@map("leases")
+}
