@@ -75,6 +75,7 @@ export class ExecutiveService {
       const stages = wf.stages as string[];
       const isFinal = wf.currentStageIndex >= stages.length - 1;
       if (isFinal) continue;
+      if (wf.transitions[0]?.toStage === "Rejected") continue;
 
       const lastMoved = wf.transitions[0]?.createdAt ?? wf.createdAt;
       const businessDaysInStage = this.countBusinessDays(new Date(lastMoved), now);

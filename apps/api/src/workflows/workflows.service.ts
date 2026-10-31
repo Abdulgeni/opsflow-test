@@ -70,9 +70,46 @@ export class WorkflowsService {
     return userRole === stageRole;
   }
 
+  private async isRejected(workflowId: string) {
+    const last = await this.prisma.workflowTransition.findFirst({
+      where: { workflowInstanceId: workflowId },
+      orderBy: { createdAt: "desc" },
+      select: { toStage: true },
+    });
+    return last?.toStage === "Rejected";
+  }
+
+  private rejectedError() {
+    return new BadRequestException({
+      statusCode: 400,
+      code: "INVALID_TRANSITION",
+      message: "This workflow was rejected and is closed. Start a new workflow to try again.",
+    });
+  }
+
+  async withRejectedFlag<T extends { id: string }>(workflows: T[]): Promise<(T & { rejected: boolean })[]> {
+    if (workflows.length === 0) return [];
+    const latest = await this.prisma.workflowTransition.findMany({
+      where: { workflowInstanceId: { in: workflows.map((w) => w.id) } },
+      orderBy: { createdAt: "desc" },
+      distinct: ["workflowInstanceId"],
+      select: { workflowInstanceId: true, toStage: true },
+    });
+    const rejected = new Set(latest.filter((t) => t.toStage === "Rejected").map((t) => t.workflowInstanceId));
+    return workflows.map((w) => ({ ...w, rejected: rejected.has(w.id) }));
+  }
+
+  private async notifyAfterReject(workflow: { id: string; title: string }, stageName: string, actorId: string, comment?: string) {
+    const past = await this.prisma.workflowTransition.findMany({ where: { workflowInstanceId: workflow.id }, select: { actorId: true } });
+    const recipients = [...new Set(past.map((t) => t.actorId))].filter((uid) => uid !== actorId);
+    const reason = comment ? `: "${comment.slice(0, 120)}"` : "";
+    await Promise.all(recipients.map((uid) => this.notifications.create(uid, `"${workflow.title}" was rejected at "${stageName}"${reason}`, { type: "workflow", id: workflow.id })));
+  }
+
   async advance(id: string, actorId: string, actorRole: string, comment?: string) {
     const workflow = await this.prisma.workflowInstance.findUnique({ where: { id } });
     if (!workflow) throw new NotFoundException("Workflow not found");
+    if (await this.isRejected(id)) throw this.rejectedError();
 
     const stages = this.normalizeStages(workflow.stages);
     if (workflow.currentStageIndex >= stages.length - 1) {
@@ -90,43 +127,28 @@ export class WorkflowsService {
     const toStage = nextStage.name;
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      const moved = await tx.workflowInstance.updateMany({
-        where: { id, currentStageIndex: workflow.currentStageIndex },
-        data: { currentStageIndex: nextIndex },
-      });
-      if (moved.count !== 1) {
-        throw new ConflictException({ statusCode: 409, code: "STAGE_ALREADY_CHANGED", message: "Someone else just moved this workflow. Refresh and try again." });
-      }
+      const moved = await tx.workflowInstance.updateMany({ where: { id, currentStageIndex: workflow.currentStageIndex }, data: { currentStageIndex: nextIndex } });
+      if (moved.count !== 1) throw new ConflictException({ statusCode: 409, code: "STAGE_ALREADY_CHANGED", message: "Someone else just moved this workflow. Refresh and try again." });
       await tx.workflowTransition.create({ data: { workflowInstanceId: id, fromStage, toStage, actorId, comment } });
       return tx.workflowInstance.findUniqueOrThrow({ where: { id } });
     });
 
     this.gateway.broadcastWorkflowUpdated(id);
 
-    try {
-      await this.notifyAfterAdvance(workflow, stages, nextIndex, actorId);
-    } catch (err) {
-      this.logger.warn(`Could not send notifications for workflow ${id}: ${err}`);
-    }
-
+    try { await this.notifyAfterAdvance(workflow, stages, nextIndex, actorId); } catch (err) { this.logger.warn(`Could not send notifications for workflow ${id}: ${err}`); }
     return updated;
   }
 
   private async notifyAfterAdvance(workflow: { id: string; title: string }, stages: { name: string; role: string }[], newIndex: number, actorId: string) {
     const link = { type: "workflow", id: workflow.id };
-
     if (newIndex === stages.length - 1) {
       const past = await this.prisma.workflowTransition.findMany({ where: { workflowInstanceId: workflow.id }, select: { actorId: true } });
       const participants = [...new Set(past.map((t) => t.actorId))].filter((uid) => uid !== actorId);
       await Promise.all(participants.map((uid) => this.notifications.create(uid, `"${workflow.title}" has been fully approved`, link)));
       return;
     }
-
     const next = stages[newIndex];
-    const approvers = await this.prisma.user.findMany({
-      where: { role: next.role as any, status: "ACTIVE", id: { not: actorId } },
-      select: { id: true },
-    });
+    const approvers = await this.prisma.user.findMany({ where: { role: next.role as any, status: "ACTIVE", id: { not: actorId } }, select: { id: true } });
     await Promise.all(approvers.map((u) => this.notifications.create(u.id, `"${workflow.title}" needs your approval at "${next.name}"`, link)));
   }
 
@@ -135,24 +157,25 @@ export class WorkflowsService {
     if (!workflow) throw new NotFoundException("Workflow not found");
 
     const stages = this.normalizeStages(workflow.stages);
-    const currentStage = stages[workflow.currentStageIndex];
+    if (workflow.currentStageIndex >= stages.length - 1) {
+      throw new BadRequestException({ statusCode: 400, code: "INVALID_TRANSITION", message: "This workflow is already complete and can't be rejected" });
+    }
+    if (await this.isRejected(id)) throw this.rejectedError();
 
+    const currentStage = stages[workflow.currentStageIndex];
     if (!this.canActOnStage(actorRole, currentStage.role)) {
       throw new ForbiddenException({ statusCode: 403, code: "FORBIDDEN_STAGE_ROLE", message: `Only ${currentStage.role} (or Admin) can reject at the "${currentStage.name}" stage` });
     }
 
-    await this.prisma.workflowTransition.create({
-      data: { workflowInstanceId: id, fromStage: currentStage.name, toStage: "Rejected", actorId, comment },
-    });
+    await this.prisma.workflowTransition.create({ data: { workflowInstanceId: id, fromStage: currentStage.name, toStage: "Rejected", actorId, comment } });
+    this.gateway.broadcastWorkflowUpdated(id);
 
+    try { await this.notifyAfterReject(workflow, currentStage.name, actorId, comment); } catch (err) { this.logger.warn(`Could not send rejection notifications for workflow ${id}: ${err}`); }
     return workflow;
   }
 
   async addComment(id: string, authorId: string, body: string) {
-    const comment = await this.prisma.workflowComment.create({
-      data: { workflowInstanceId: id, authorId, body },
-      include: { author: { select: { name: true } } },
-    });
+    const comment = await this.prisma.workflowComment.create({ data: { workflowInstanceId: id, authorId, body }, include: { author: { select: { name: true } } } });
     this.gateway.broadcastNewComment(id, comment);
     return comment;
   }
