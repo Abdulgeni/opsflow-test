@@ -52,6 +52,13 @@ export class WorkflowsService {
   }
 
   async create(data: { title: string; stages: { name: string; role: string }[]; linkedEntityType?: string; linkedEntityId?: string }) {
+    if (!data.title || !data.stages || data.stages.length === 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        code: "INVALID_BODY",
+        message: "A workflow requires a title and at least one stage",
+      });
+    }
     return this.prisma.workflowInstance.create({
       data: { title: data.title, stages: data.stages, linkedEntityType: data.linkedEntityType, linkedEntityId: data.linkedEntityId, currentStageIndex: 0 },
     });
