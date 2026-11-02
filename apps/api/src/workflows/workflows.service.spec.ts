@@ -5,6 +5,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { WorkflowsGateway } from "./workflows.gateway";
 import { NotificationsService } from "../notifications/notifications.service";
 
+const notificationsMock = { create: jest.fn() };
+
 describe("WorkflowsService", () => {
   let service: WorkflowsService;
   let prisma: PrismaService;
@@ -16,7 +18,7 @@ describe("WorkflowsService", () => {
         WorkflowsService,
         PrismaService,
         { provide: WorkflowsGateway, useValue: { broadcastNewComment: jest.fn(), broadcastWorkflowUpdated: jest.fn() } },
-        { provide: NotificationsService, useValue: { create: jest.fn() } },
+        { provide: NotificationsService, useValue: notificationsMock },
       ],
     }).compile();
 
@@ -39,6 +41,12 @@ describe("WorkflowsService", () => {
   });
 
   let createdId: string;
+
+  async function cleanup(workflowId: string) {
+      await prisma.workflowTransition.deleteMany({ where: { workflowInstanceId: workflowId } });
+      await prisma.workflowInstance.delete({ where: { id: workflowId } });
+    }
+
 
   it("creates a workflow starting at stage index 0 (CREATE)", async () => {
     const wf = await service.create({
@@ -74,4 +82,42 @@ describe("WorkflowsService", () => {
     await prisma.workflowInstance.delete({ where: { id: createdId } }).catch(() => {});
     await prisma.user.delete({ where: { id: testUserId } }).catch(() => {});
   });
+
+  it("reopens a rejected workflow: reason required, audited, approvers notified, advanceable again", async () => {
+    const manager = await prisma.user.create({
+      data: { name: "Jest Reopen Approver", email: `jest-reopen-${Date.now()}@example.com`, role: "MANAGER", status: "ACTIVE" },
+    });
+    const wf = await service.create({
+      title: "Reopen test",
+      stages: [
+        { name: "Draft", role: "ADMIN" },
+        { name: "Review", role: "MANAGER" },
+        { name: "Done", role: "ADMIN" },
+      ],
+    });
+
+    try {
+      await service.advance(wf.id, testUserId, "ADMIN");
+      await service.reject(wf.id, testUserId, "ADMIN", "not now");
+
+      await expect(service.reopen(wf.id, testUserId, "   ")).rejects.toThrow();
+
+      notificationsMock.create.mockClear();
+      await service.reopen(wf.id, testUserId, "Budget approved");
+
+      const [after] = await service.withRejectedFlag([wf]);
+      expect(after.rejected).toBe(false);
+
+      const recipients = notificationsMock.create.mock.calls.map((c) => c[0]);
+      expect(recipients).toContain(manager.id);
+      expect(recipients).not.toContain(testUserId);
+
+      await expect(service.reopen(wf.id, testUserId, "again")).rejects.toThrow();
+      await service.advance(wf.id, testUserId, "ADMIN");
+    } finally {
+      await cleanup(wf.id);
+      await prisma.user.delete({ where: { id: manager.id } });
+    }
+  });
+
 });

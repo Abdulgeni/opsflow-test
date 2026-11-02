@@ -56,4 +56,11 @@ export class WorkflowsController {
   @Get("available/users")
   @Roles("ADMIN", "MANAGER", "STAFF")
   getAvailableUsers() { return this.workflowsService.getAvailableUsers(); }
+
+  @Post(":id/reopen")
+  @Roles("ADMIN")
+  reopen(@Param("id") id: string, @Req() req: any, @Body("comment") comment: string) {
+    return this.workflowsService.reopen(id, req.user.id, comment);
+  }
+
 }

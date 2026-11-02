@@ -184,4 +184,65 @@ export class WorkflowsService {
   async getAvailableDocuments() { return this.prisma.document.findMany({ select: { id: true, title: true, category: true } }); }
   async getAvailableClients() { return this.prisma.client.findMany({ select: { id: true, name: true, type: true } }); }
   async getAvailableUsers() { return this.prisma.user.findMany({ select: { id: true, name: true, role: true } }); }
+
+  async reopen(id: string, actorId: string, comment: string) {
+    const reason = comment?.trim();
+    if (!reason) {
+      throw new BadRequestException({
+        statusCode: 400,
+        code: "REASON_REQUIRED",
+        message: "A reason is required to reopen a workflow",
+      });
+    }
+
+    const workflow = await this.prisma.workflowInstance.findUnique({ where: { id } });
+    if (!workflow) throw new NotFoundException("Workflow not found");
+
+    if (!(await this.isRejected(id))) {
+      throw new BadRequestException({
+        statusCode: 400,
+        code: "INVALID_TRANSITION",
+        message: "Only a rejected workflow can be reopened",
+      });
+    }
+
+    const stages = this.normalizeStages(workflow.stages);
+    const stage = stages[workflow.currentStageIndex];
+
+    await this.prisma.workflowTransition.create({
+      data: { workflowInstanceId: id, fromStage: "Rejected", toStage: stage.name, actorId, comment: reason },
+    });
+
+    this.gateway.broadcastWorkflowUpdated(id);
+
+    try {
+      await this.notifyAfterReopen(workflow, stage, actorId, reason);
+    } catch (err) {
+      this.logger.warn(`Could not send reopen notifications for workflow ${id}: ${err}`);
+    }
+
+    return workflow;
+  }
+
+  private async notifyAfterReopen(
+    workflow: { id: string; title: string },
+    stage: { name: string; role: string },
+    actorId: string,
+    reason: string,
+  ) {
+    const approvers = await this.prisma.user.findMany({
+      where: { role: stage.role as any, status: "ACTIVE", id: { not: actorId } },
+      select: { id: true },
+    });
+    await Promise.all(
+      approvers.map((u) =>
+        this.notifications.create(
+          u.id,
+          `"${workflow.title}" was reopened and needs your approval at "${stage.name}": "${reason.slice(0, 120)}"`,
+          { type: "workflow", id: workflow.id },
+        ),
+      ),
+    );
+  }
+
 }
