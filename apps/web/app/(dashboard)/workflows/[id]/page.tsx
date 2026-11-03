@@ -9,6 +9,7 @@ import {
   fetchWorkflow,
   advanceWorkflow,
   rejectWorkflow,
+  reopenWorkflow,
   addWorkflowComment,
   updateWorkflowTitle,
   ApiWorkflow,
@@ -103,6 +104,17 @@ export default function WorkflowDetailPage() {
     }
   }
 
+  async function handleReopen() {
+    const reason = window.prompt("Why is this workflow being reopened? (required)")?.trim();
+    if (!reason) return;
+    try {
+      await reopenWorkflow(wf!.id, reason);
+      window.location.reload();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to reopen workflow");
+    }
+  }
+
   if (loading) return <div className="h-40 bg-surface-container-low rounded animate-pulse" />;
   if (error || !wf) return <div className="text-sm text-status-negative-text">{error ?? "Workflow not found."}</div>;
 
@@ -147,12 +159,27 @@ export default function WorkflowDetailPage() {
               </div>
             );
           })()}
+          {wf.rejected && myRole === "ADMIN" && (
+            <button
+              onClick={handleReopen}
+              className="bg-charcoal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-container transition-colors"
+            >
+              Reopen Workflow
+            </button>
+          )}
         </div>
       </div>
 
       {actionError && (
         <div className="rounded-lg bg-status-negative-bg text-status-negative-text px-4 py-3 text-sm">
           {actionError}
+        </div>
+      )}
+
+      {wf.rejected && (
+        <div className="rounded-lg bg-status-negative-bg text-status-negative-text px-4 py-3 text-sm">
+          This workflow was rejected and is closed.
+          {myRole === "ADMIN" ? " As an Admin you can reopen it." : " Ask an Admin to reopen it, or start a new workflow."}
         </div>
       )}
 

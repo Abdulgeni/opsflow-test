@@ -117,3 +117,15 @@ export async function fetchLinkOptions(type: "property" | "document" | "client")
   if (!res.ok) throw new Error(`Failed to fetch ${endpoint}`);
   return res.json();
 }
+export async function reopenWorkflow(id: string, comment: string) {
+  const res = await fetch(`${API_URL}/workflows/${id}/reopen`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ comment }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? "Failed to reopen workflow");
+  }
+  return res.json();
+}
