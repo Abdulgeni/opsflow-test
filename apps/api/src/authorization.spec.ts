@@ -169,6 +169,12 @@ describe("Authorization over HTTP (every role, real guards, real database)", () 
   });
 
   describe("unauthenticated callers", () => {
+    it("GET /health is public and reports up", async () => {
+      const res = await call("NONE", "get", "/health");
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ status: "ok" });
+    });
+
     it.each([
       ["get", "/properties"],
       ["get", "/leases/mine"],
