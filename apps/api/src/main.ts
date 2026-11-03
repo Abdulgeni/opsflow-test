@@ -1,7 +1,6 @@
 import "dotenv/config";
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
-import { assertSafeConfig } from "./config/assert-safe-config";
 import { AppModule } from "./app.module";
 
 declare const process: {
@@ -9,7 +8,6 @@ declare const process: {
 };
 
 async function bootstrap() {
-  assertSafeConfig();
   const app = await NestFactory.create(AppModule);
   app.enableCors({ origin: process.env.WEB_URL ?? "http://localhost:3000" });
   await app.listen(process.env.PORT ?? 4000);
